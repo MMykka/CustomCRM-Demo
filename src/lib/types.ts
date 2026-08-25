@@ -8,6 +8,7 @@ export type ActivityType = "note" | "call" | "email" | "sms" | "meeting" | "stag
 export type TaskStatus = "open" | "completed" | "cancelled";
 export type TaskPriority = "low" | "normal" | "high";
 export type UserRole = "owner" | "admin" | "member";
+export type NotificationType = "task_assigned" | "mention" | "reply" | "other";
 
 export type Contact = Tables<"contacts">;
 export type Company = Tables<"companies">;
@@ -20,6 +21,9 @@ export type Tag = Tables<"tags">;
 export type AppUser = Tables<"users">;
 export type CustomField = Tables<"custom_fields">;
 export type CustomFieldValue = Tables<"custom_field_values">;
+export type Organization = Tables<"organizations">;
+export type OrganizationMember = Tables<"organization_members">;
+export type Notification = Tables<"notifications">;
 
 export function contactDisplayName(contact: Pick<Contact, "first_name" | "last_name" | "email">) {
   const name = [contact.first_name, contact.last_name].filter(Boolean).join(" ").trim();

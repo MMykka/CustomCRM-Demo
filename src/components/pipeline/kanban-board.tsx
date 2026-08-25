@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -23,8 +23,20 @@ export function KanbanBoard({
   initialDeals: DealWithRelations[];
 }) {
   const [deals, setDeals] = useState(initialDeals);
+  const [syncedInitialDeals, setSyncedInitialDeals] = useState(initialDeals);
   const dealsRef = useRef(deals);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const instanceId = useId();
+
+  // useState(initialDeals) only seeds state on first mount; a same-route
+  // router.refresh() (e.g. after creating a deal elsewhere) re-renders this
+  // component with a new initialDeals prop without remounting it, so without
+  // this the board would silently keep showing stale data. This is React's
+  // documented "adjust state during render" pattern, not a side effect.
+  if (initialDeals !== syncedInitialDeals) {
+    setSyncedInitialDeals(initialDeals);
+    setDeals(initialDeals);
+  }
 
   useEffect(() => {
     dealsRef.current = deals;
@@ -33,7 +45,7 @@ export function KanbanBoard({
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
-      .channel(`pipeline-${pipelineId}`)
+      .channel(`pipeline-${pipelineId}-${instanceId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "deals", filter: `pipeline_id=eq.${pipelineId}` },
@@ -76,7 +88,7 @@ export function KanbanBoard({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [pipelineId]);
+  }, [pipelineId, instanceId]);
 
   async function handleDragEnd(event: DragEndEvent) {
     const dealId = event.active.id as string;

@@ -589,6 +589,102 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link_url: string | null
+          organization_id: string
+          read_at: string | null
+          related_id: string | null
+          related_table: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link_url?: string | null
+          organization_id?: string
+          read_at?: string | null
+          related_id?: string | null
+          related_table?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link_url?: string | null
+          organization_id?: string
+          read_at?: string | null
+          related_id?: string | null
+          related_table?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -1092,6 +1188,10 @@ export type Database = {
     Functions: {
       create_organization: { Args: { org_name: string }; Returns: string }
       current_org_id: { Args: never; Returns: string }
+      switch_active_organization: {
+        Args: { target_org_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1227,3 +1327,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

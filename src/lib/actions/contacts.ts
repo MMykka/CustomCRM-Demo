@@ -3,6 +3,47 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
+import { contactDisplayName } from "@/lib/types";
+
+export async function listContactsForPicker() {
+  await requireAppUser();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("id, first_name, last_name, email")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) throw error;
+
+  return (data ?? []).map((c) => ({ id: c.id, label: contactDisplayName(c) }));
+}
+
+export async function addContact(input: { firstName: string; lastName: string; email: string; phone: string }) {
+  if (!input.firstName.trim() && !input.lastName.trim() && !input.email.trim()) return null;
+
+  const appUser = await requireAppUser();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("contacts")
+    .insert({
+      organization_id: appUser.organization_id!,
+      first_name: input.firstName.trim() || null,
+      last_name: input.lastName.trim() || null,
+      email: input.email.trim() || null,
+      phone: input.phone.trim() || null,
+      owner_id: appUser.id,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+
+  revalidatePath("/contacts");
+  return data.id as string;
+}
 
 export async function addActivityNote(contactId: string, body: string) {
   if (!body.trim()) return;

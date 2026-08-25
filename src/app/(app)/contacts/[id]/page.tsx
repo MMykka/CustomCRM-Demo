@@ -54,7 +54,14 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             {contact.email ? <span>{contact.email}</span> : null}
             {contact.phone ? <span>{contact.phone}</span> : null}
             {contact.job_title ? <span>{contact.job_title}</span> : null}
-            {contact.company ? <span>at {contact.company.name}</span> : null}
+            {contact.company ? (
+              <span>
+                at{" "}
+                <Link href={`/companies/${contact.company.id}`} className="hover:underline">
+                  {contact.company.name}
+                </Link>
+              </span>
+            ) : null}
             {contact.owner ? <span>Owner: {contact.owner.full_name ?? contact.owner.email}</span> : null}
           </div>
           <TagEditor contactId={contact.id} allTags={allTags ?? []} activeTags={activeTags} />
@@ -62,12 +69,14 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <Tabs defaultValue="timeline">
-        <TabsList>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="deals">Deals ({deals?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks ({tasks?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="details">Details</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto">
+          <TabsList>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
+            <TabsTrigger value="deals">Deals ({deals?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks ({tasks?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="details">Details</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="timeline" className="max-w-2xl">
           <ActivityTimeline contactId={contact.id} activities={(activities ?? []) as ActivityWithUser[]} />

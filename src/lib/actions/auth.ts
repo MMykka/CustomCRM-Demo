@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 export async function signIn(
@@ -65,5 +66,6 @@ export async function createOrganization(
     return { error: error.message };
   }
 
+  revalidatePath("/", "layout");
   redirect("/contacts");
 }

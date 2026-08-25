@@ -38,7 +38,14 @@ export const contactColumns: ColumnDef<ContactRow>[] = [
     id: "company",
     accessorFn: (row) => row.company?.name ?? "",
     header: "Company",
-    cell: ({ row }) => row.original.company?.name ?? <span className="text-muted-foreground">—</span>,
+    cell: ({ row }) =>
+      row.original.company ? (
+        <Link href={`/companies/${row.original.company.id}`} className="hover:underline">
+          {row.original.company.name}
+        </Link>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
   },
   {
     id: "owner",
