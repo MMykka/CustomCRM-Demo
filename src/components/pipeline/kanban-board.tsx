@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { moveDealToStage } from "@/lib/actions/pipeline";
 import type { Contact, Deal, Stage } from "@/lib/types";
 import { KanbanColumn } from "./kanban-column";
+import { DealCard } from "./deal-card";
 
 export type DealWithRelations = Deal & {
   contact: Pick<Contact, "id" | "first_name" | "last_name" | "email"> | null;
@@ -24,6 +25,7 @@ export function KanbanBoard({
 }) {
   const [deals, setDeals] = useState(initialDeals);
   const [syncedInitialDeals, setSyncedInitialDeals] = useState(initialDeals);
+  const [activeDeal, setActiveDeal] = useState<DealWithRelations | null>(null);
   const dealsRef = useRef(deals);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const instanceId = useId();
@@ -90,7 +92,13 @@ export function KanbanBoard({
     };
   }, [pipelineId, instanceId]);
 
+  function handleDragStart(event: DragStartEvent) {
+    setActiveDeal((event.active.data.current?.deal as DealWithRelations | undefined) ?? null);
+  }
+
   async function handleDragEnd(event: DragEndEvent) {
+    setActiveDeal(null);
+
     const dealId = event.active.id as string;
     const toStageId = event.over?.id as string | undefined;
     if (!toStageId) return;
@@ -110,12 +118,13 @@ export function KanbanBoard({
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActiveDeal(null)}>
       <div className="flex flex-1 gap-3 overflow-x-auto pb-4">
         {stages.map((stage) => (
           <KanbanColumn key={stage.id} stage={stage} deals={deals.filter((deal) => deal.stage_id === stage.id)} />
         ))}
       </div>
+      <DragOverlay>{activeDeal ? <DealCard deal={activeDeal} isOverlay /> : null}</DragOverlay>
     </DndContext>
   );
 }
