@@ -4,13 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ContactHeader } from "@/components/contact/contact-header";
+import { DuplicateBanner } from "@/components/contact/duplicate-banner";
+import { findDuplicateContacts } from "@/lib/actions/duplicates";
 import { ActivityTimeline, type ActivityWithUser } from "@/components/contact/activity-timeline";
 import { NotesPanel, type NoteWithAuthor } from "@/components/contact/notes-panel";
 import { FilesPanel, type FileWithUploader } from "@/components/contact/files-panel";
 import { SequenceEnrollmentsPanel, type EnrollmentWithSequence } from "@/components/contact/sequence-enrollments-panel";
 import { ConsentPanel } from "@/components/contact/consent-panel";
 import { TaskChecklist, type TaskRow } from "@/components/tasks/task-checklist";
-import { formatCurrency, type ConsentStatus } from "@/lib/types";
+import { contactDisplayName, formatCurrency, type ConsentStatus } from "@/lib/types";
 
 export default async function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -29,6 +31,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
     { data: availableSequences },
     { data: customFields },
     { data: customValues },
+    duplicateCandidates,
   ] = await Promise.all([
     supabase
       .from("contacts")
@@ -62,6 +65,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
     supabase.from("sequences").select("id, name").eq("is_active", true).order("name"),
     supabase.from("custom_fields").select("*").eq("entity_type", "contact").order("position"),
     supabase.from("custom_field_values").select("*").eq("entity_type", "contact").eq("entity_id", id),
+    findDuplicateContacts(id),
   ]);
 
   if (!contact) notFound();
@@ -71,6 +75,10 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="flex flex-col gap-6 p-6">
+      <DuplicateBanner
+        currentContact={{ id: contact.id, name: contactDisplayName(contact), email: contact.email, phone: contact.phone }}
+        candidates={duplicateCandidates}
+      />
       <ContactHeader contact={contact} allTags={allTags ?? []} activeTags={activeTags} />
 
       <Tabs defaultValue="timeline">
