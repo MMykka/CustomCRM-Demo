@@ -1,77 +1,70 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { TagEditor } from "@/components/contact/tag-editor";
+import { ContactHeader } from "@/components/contact/contact-header";
 import { ActivityTimeline, type ActivityWithUser } from "@/components/contact/activity-timeline";
+import { NotesPanel, type NoteWithAuthor } from "@/components/contact/notes-panel";
 import { TaskChecklist, type TaskRow } from "@/components/tasks/task-checklist";
-import { contactDisplayName, formatCurrency, initialsFor } from "@/lib/types";
+import { formatCurrency } from "@/lib/types";
 
 export default async function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: contact }, { data: allTags }, { data: deals }, { data: tasks }, { data: activities }, { data: customFields }, { data: customValues }] =
-    await Promise.all([
-      supabase
-        .from("contacts")
-        .select("*, company:companies(id, name), owner:users(id, full_name, email), contact_tags(tags(*))")
-        .eq("id", id)
-        .single(),
-      supabase.from("tags").select("*").order("name"),
-      supabase
-        .from("deals")
-        .select("*, stage:stages(id, name), pipeline:pipelines(id, name)")
-        .eq("contact_id", id)
-        .order("created_at", { ascending: false }),
-      supabase.from("tasks").select("*, contact:contacts(id, first_name, last_name, email)").eq("contact_id", id).order("due_at", { ascending: true }),
-      supabase
-        .from("activities")
-        .select("*, user:users(full_name, email)")
-        .eq("contact_id", id)
-        .order("created_at", { ascending: false }),
-      supabase.from("custom_fields").select("*").eq("entity_type", "contact").order("position"),
-      supabase.from("custom_field_values").select("*").eq("entity_type", "contact").eq("entity_id", id),
-    ]);
+  const [
+    { data: contact },
+    { data: allTags },
+    { data: deals },
+    { data: tasks },
+    { data: activities },
+    { data: notes },
+    { data: members },
+    { data: customFields },
+    { data: customValues },
+  ] = await Promise.all([
+    supabase
+      .from("contacts")
+      .select("*, company:companies(id, name), owner:users(id, full_name, email), contact_tags(tags(*))")
+      .eq("id", id)
+      .single(),
+    supabase.from("tags").select("*").order("name"),
+    supabase
+      .from("deals")
+      .select("*, stage:stages(id, name), pipeline:pipelines(id, name)")
+      .eq("contact_id", id)
+      .order("created_at", { ascending: false }),
+    supabase.from("tasks").select("*, contact:contacts(id, first_name, last_name, email)").eq("contact_id", id).order("due_at", { ascending: true }),
+    supabase
+      .from("activities")
+      .select("*, user:users(full_name, email)")
+      .eq("contact_id", id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("notes")
+      .select("*, author:users!notes_author_id_fkey(full_name, email)")
+      .eq("contact_id", id)
+      .order("created_at", { ascending: false }),
+    supabase.from("users").select("id, full_name, email"),
+    supabase.from("custom_fields").select("*").eq("entity_type", "contact").order("position"),
+    supabase.from("custom_field_values").select("*").eq("entity_type", "contact").eq("entity_id", id),
+  ]);
 
   if (!contact) notFound();
 
-  const name = contactDisplayName(contact);
   const activeTags = contact.contact_tags.map((ct) => ct.tags).filter((tag) => tag !== null);
   const valuesByField = new Map((customValues ?? []).map((v) => [v.custom_field_id, v.value]));
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-start gap-4">
-        <Avatar className="size-14">
-          <AvatarFallback className="text-lg">{initialsFor(name)}</AvatarFallback>
-        </Avatar>
-        <div className="flex flex-1 flex-col gap-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight">{name}</h1>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-            {contact.email ? <span>{contact.email}</span> : null}
-            {contact.phone ? <span>{contact.phone}</span> : null}
-            {contact.job_title ? <span>{contact.job_title}</span> : null}
-            {contact.company ? (
-              <span>
-                at{" "}
-                <Link href={`/companies/${contact.company.id}`} className="hover:underline">
-                  {contact.company.name}
-                </Link>
-              </span>
-            ) : null}
-            {contact.owner ? <span>Owner: {contact.owner.full_name ?? contact.owner.email}</span> : null}
-          </div>
-          <TagEditor contactId={contact.id} allTags={allTags ?? []} activeTags={activeTags} />
-        </div>
-      </div>
+      <ContactHeader contact={contact} allTags={allTags ?? []} activeTags={activeTags} />
 
       <Tabs defaultValue="timeline">
         <div className="overflow-x-auto">
           <TabsList>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
+            <TabsTrigger value="notes">Notes ({notes?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="deals">Deals ({deals?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="tasks">Tasks ({tasks?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
@@ -80,6 +73,10 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
 
         <TabsContent value="timeline" className="max-w-2xl">
           <ActivityTimeline contactId={contact.id} activities={(activities ?? []) as ActivityWithUser[]} />
+        </TabsContent>
+
+        <TabsContent value="notes">
+          <NotesPanel contactId={contact.id} notes={(notes ?? []) as NoteWithAuthor[]} members={members ?? []} />
         </TabsContent>
 
         <TabsContent value="deals">

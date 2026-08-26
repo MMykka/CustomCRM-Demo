@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
-import { contactDisplayName } from "@/lib/types";
+import { contactDisplayName, type LifecycleStage } from "@/lib/types";
 
 export async function listContactsForPicker() {
   await requireAppUser();
@@ -62,6 +62,56 @@ export async function addActivityNote(contactId: string, body: string) {
   if (error) throw error;
 
   revalidatePath(`/contacts/${contactId}`);
+}
+
+export async function updateContact(
+  contactId: string,
+  input: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    jobTitle: string;
+    source: string;
+    lifecycleStage: LifecycleStage;
+    leadScore: number;
+    companyId: string | null;
+    ownerId: string | null;
+  },
+) {
+  await requireAppUser();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("contacts")
+    .update({
+      first_name: input.firstName.trim() || null,
+      last_name: input.lastName.trim() || null,
+      email: input.email.trim() || null,
+      phone: input.phone.trim() || null,
+      job_title: input.jobTitle.trim() || null,
+      source: input.source.trim() || null,
+      lifecycle_stage: input.lifecycleStage,
+      lead_score: input.leadScore,
+      company_id: input.companyId,
+      owner_id: input.ownerId,
+    })
+    .eq("id", contactId);
+
+  if (error) throw error;
+
+  revalidatePath(`/contacts/${contactId}`);
+  revalidatePath("/contacts");
+}
+
+export async function listCompaniesForPicker() {
+  await requireAppUser();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.from("companies").select("id, name").order("name").limit(200);
+
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function toggleContactTag(contactId: string, tagId: string, add: boolean) {

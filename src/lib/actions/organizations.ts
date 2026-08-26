@@ -16,6 +16,20 @@ export async function switchOrganization(organizationId: string) {
   redirect("/contacts");
 }
 
+export async function listOrgMembersForPicker() {
+  const appUser = await requireAppUser();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, full_name, email")
+    .eq("organization_id", appUser.organization_id!)
+    .order("full_name");
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function renameOrganization(_prevState: { error: string | null }, formData: FormData): Promise<{ error: string | null }> {
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Organization name is required" };

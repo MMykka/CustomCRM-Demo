@@ -2,7 +2,7 @@
 
 import { useRef, useTransition } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { StickyNote, Phone, Mail, MessageSquare, Users, ArrowRightLeft, CheckCircle2, Circle } from "lucide-react";
+import { StickyNote, Phone, Mail, MessageSquare, Users, ArrowRightLeft, CheckCircle2, FileText, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { addActivityNote } from "@/lib/actions/contacts";
@@ -16,8 +16,33 @@ const ACTIVITY_ICONS: Record<ActivityType, typeof StickyNote> = {
   meeting: Users,
   stage_change: ArrowRightLeft,
   task_completed: CheckCircle2,
+  form_submission: FileText,
   other: Circle,
 };
+
+const CALL_OUTCOME_LABELS: Record<string, string> = {
+  connected: "Connected",
+  voicemail: "Voicemail",
+  no_answer: "No answer",
+  busy: "Busy",
+};
+
+function activitySummary(activity: ActivityWithUser) {
+  const metadata = (activity.metadata ?? {}) as Record<string, unknown>;
+
+  if (activity.type === "call" && typeof metadata.outcome === "string") {
+    const outcome = CALL_OUTCOME_LABELS[metadata.outcome] ?? metadata.outcome;
+    const minutes = typeof metadata.duration_seconds === "number" ? Math.round(metadata.duration_seconds / 60) : null;
+    return `Call · ${outcome}${minutes ? ` · ${minutes}m` : ""}`;
+  }
+
+  if (activity.type === "meeting" && typeof metadata.duration_minutes === "number") {
+    const attendees = Array.isArray(metadata.attendees) ? metadata.attendees.length : 0;
+    return `Meeting · ${metadata.duration_minutes}m${attendees ? ` · ${attendees} attendee${attendees === 1 ? "" : "s"}` : ""}`;
+  }
+
+  return null;
+}
 
 export type ActivityWithUser = Activity & { user: { full_name: string | null; email: string } | null };
 
@@ -53,6 +78,7 @@ export function ActivityTimeline({ contactId, activities }: { contactId: string;
           activities.map((activity) => {
             const Icon = ACTIVITY_ICONS[activity.type as ActivityType] ?? Circle;
             const author = activity.user?.full_name ?? activity.user?.email ?? "System";
+            const summary = activitySummary(activity);
             return (
               <li key={activity.id} className="flex gap-3">
                 <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-muted">
@@ -62,9 +88,11 @@ export function ActivityTimeline({ contactId, activities }: { contactId: string;
                   <p className="text-sm">
                     <span className="font-medium">{author}</span>{" "}
                     <span className="text-muted-foreground">
-                      {activity.type === "stage_change" ? "moved the deal to a new stage" : activity.body ?? activityLabel(activity.type as ActivityType)}
+                      {activity.type === "stage_change" ? "moved the deal to a new stage" : activityLabel(activity.type as ActivityType)}
                     </span>
                   </p>
+                  {summary ? <p className="text-xs font-medium text-foreground">{summary}</p> : null}
+                  {activity.body ? <p className="text-sm">{activity.body}</p> : null}
                   <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}</p>
                 </div>
               </li>
@@ -78,6 +106,8 @@ export function ActivityTimeline({ contactId, activities }: { contactId: string;
 
 function activityLabel(type: ActivityType) {
   switch (type) {
+    case "note":
+      return "added a note";
     case "call":
       return "logged a call";
     case "email":
@@ -88,6 +118,8 @@ function activityLabel(type: ActivityType) {
       return "logged a meeting";
     case "task_completed":
       return "completed a task";
+    case "form_submission":
+      return "submitted a form";
     default:
       return "logged an activity";
   }
