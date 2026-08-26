@@ -3,6 +3,7 @@ import { ContactsList } from "@/components/contacts/contacts-list";
 import { parseContactsFilters, queryContacts, CONTACTS_PAGE_SIZE } from "@/lib/contacts-query";
 import { listOrgMembersForPicker } from "@/lib/actions/organizations";
 import { listSavedViews } from "@/lib/actions/saved-views";
+import { listSequencesForPicker } from "@/lib/actions/sequences";
 import type { ContactRow } from "@/components/contacts/contacts-table";
 
 export default async function ContactsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -15,6 +16,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
     { data: allTags },
     owners,
     savedViews,
+    availableSequences,
     { data: sourceRows },
     {
       data: { user },
@@ -24,6 +26,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
     supabase.from("tags").select("*").order("name"),
     listOrgMembersForPicker(),
     listSavedViews(),
+    listSequencesForPicker(),
     supabase.from("contacts").select("source").not("source", "is", null),
     supabase.auth.getUser(),
   ]);
@@ -49,6 +52,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
         allTags={allTags ?? []}
         owners={owners}
         availableSources={availableSources}
+        availableSequences={availableSequences}
         savedViews={savedViews}
         currentUserId={user?.id ?? ""}
       />

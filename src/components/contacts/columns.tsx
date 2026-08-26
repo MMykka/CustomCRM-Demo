@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TagBadge } from "@/components/tag-badge";
 import { contactDisplayName, initialsFor, LIFECYCLE_STAGE_LABELS, type LifecycleStage } from "@/lib/types";
 import type { ContactRow } from "./contacts-table";
@@ -23,6 +24,20 @@ export const CONTACT_COLUMN_OPTIONS: { id: string; label: string }[] = [
 ];
 
 export const contactColumns: ColumnDef<ContactRow>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
+        onCheckedChange={(checked) => table.toggleAllPageRowsSelected(checked === true)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(checked) => row.toggleSelected(checked === true)} aria-label="Select row" />,
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     id: "name",
     accessorFn: (row) => contactDisplayName(row),

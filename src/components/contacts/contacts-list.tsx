@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { VisibilityState } from "@tanstack/react-table";
+import type { RowSelectionState, VisibilityState } from "@tanstack/react-table";
 import { useHasMounted } from "@/lib/use-has-mounted";
 import { ContactsToolbar } from "@/components/contacts/contacts-toolbar";
 import { ContactsTable, type ContactRow } from "@/components/contacts/contacts-table";
 import { ContactsPagination } from "@/components/contacts/contacts-pagination";
+import { BulkActionToolbar } from "@/components/contacts/bulk-action-toolbar";
 import { CONTACT_COLUMN_OPTIONS } from "@/components/contacts/columns";
 import type { SavedView, Tag } from "@/lib/types";
 
@@ -34,6 +35,7 @@ export function ContactsList({
   allTags,
   owners,
   availableSources,
+  availableSequences,
   savedViews,
   currentUserId,
 }: {
@@ -44,12 +46,14 @@ export function ContactsList({
   allTags: Tag[];
   owners: { id: string; full_name: string | null; email: string }[];
   availableSources: string[];
+  availableSequences: { id: string; name: string }[];
   savedViews: SavedView[];
   currentUserId: string;
 }) {
   const hasMounted = useHasMounted();
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibility());
   const [syncedMounted, setSyncedMounted] = useState(false);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   // Load the persisted column-visibility preference once hydration is safe
   // (render-time state adjustment owned by this component, not passed
@@ -68,6 +72,9 @@ export function ContactsList({
     }
   }
 
+  const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+  const selectedRows = rows.filter((r) => selectedIds.includes(r.id));
+
   return (
     <div className="flex flex-col gap-4">
       <ContactsToolbar
@@ -79,7 +86,15 @@ export function ContactsList({
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={updateColumnVisibility}
       />
-      <ContactsTable data={rows} columnVisibility={columnVisibility} />
+      <BulkActionToolbar
+        selectedIds={selectedIds}
+        selectedRows={selectedRows}
+        allTags={allTags}
+        owners={owners}
+        availableSequences={availableSequences}
+        onClearSelection={() => setRowSelection({})}
+      />
+      <ContactsTable data={rows} columnVisibility={columnVisibility} rowSelection={rowSelection} onRowSelectionChange={setRowSelection} />
       <ContactsPagination page={page} pageSize={pageSize} totalCount={totalCount} />
     </div>
   );

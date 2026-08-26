@@ -65,7 +65,7 @@ export function contactsFiltersToSearchParams(filters: Partial<ContactsFilters>)
   return params;
 }
 
-export async function queryContacts(supabase: SupabaseClient<Database>, filters: ContactsFilters) {
+export async function queryContacts(supabase: SupabaseClient<Database>, filters: ContactsFilters, pageSize: number = CONTACTS_PAGE_SIZE) {
   let contactIdScope: string[] | null = null;
 
   if (filters.tagIds.length > 0) {
@@ -92,8 +92,8 @@ export async function queryContacts(supabase: SupabaseClient<Database>, filters:
   const sort = SORT_MAP[filters.sort];
   query = query.order(sort.column, { ascending: sort.ascending });
 
-  const from = (filters.page - 1) * CONTACTS_PAGE_SIZE;
-  const to = from + CONTACTS_PAGE_SIZE - 1;
+  const from = (filters.page - 1) * pageSize;
+  const to = from + pageSize - 1;
   query = query.range(from, to);
 
   const { data, error, count } = await query;

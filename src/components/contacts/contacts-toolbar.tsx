@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { toast } from "sonner";
+import { Download, Search, SlidersHorizontal, Upload, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -11,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MultiSelectFilter, type FilterOption } from "@/components/contacts/multi-select-filter";
 import { SavedViewsMenu } from "@/components/contacts/saved-views-menu";
 import { CONTACT_COLUMN_OPTIONS } from "@/components/contacts/columns";
+import { exportContactsForFilters } from "@/lib/actions/contacts-bulk";
+import { downloadCsv } from "@/lib/csv";
 import { LIFECYCLE_STAGE_LABELS, type LifecycleStage, type SavedView, type Tag } from "@/lib/types";
 import type { VisibilityState } from "@tanstack/react-table";
 
@@ -43,6 +47,18 @@ export function ContactsToolbar({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
+  const [isExporting, startExport] = useTransition();
+
+  function exportAll() {
+    startExport(async () => {
+      const rows = await exportContactsForFilters(Object.fromEntries(searchParams.entries()));
+      if (rows.length === 0) {
+        toast.error("No contacts match the current filters");
+        return;
+      }
+      downloadCsv(`contacts-export-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    });
+  }
 
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -177,6 +193,16 @@ export function ContactsToolbar({
               </div>
             </PopoverContent>
           </Popover>
+
+          <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/contacts/import" />}>
+            <Upload className="size-4" />
+            Import
+          </Button>
+
+          <Button variant="outline" size="sm" disabled={isExporting} onClick={exportAll}>
+            <Download className="size-4" />
+            {isExporting ? "Exporting..." : "Export"}
+          </Button>
 
           <SavedViewsMenu views={savedViews} currentUserId={currentUserId} />
         </div>
