@@ -16,12 +16,14 @@ export function LogMessageDialog({
   channel,
   contactId,
   toAddress,
+  optedOut = false,
   open,
   onOpenChange,
 }: {
   channel: "sms" | "email";
   contactId: string;
   toAddress: string | null;
+  optedOut?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -65,6 +67,11 @@ export function LogMessageDialog({
           <DialogTitle>{channel === "email" ? "Send email" : "Send text"}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3">
+          {optedOut ? (
+            <p className="rounded-md bg-destructive/10 px-2.5 py-1.5 text-xs text-destructive">
+              This contact opted out of {channel === "email" ? "email" : "SMS"}. Sending anyway will still be logged.
+            </p>
+          ) : null}
           {channel === "email" ? (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="msg-subject">Subject</Label>

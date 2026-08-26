@@ -6,8 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { ContactHeader } from "@/components/contact/contact-header";
 import { ActivityTimeline, type ActivityWithUser } from "@/components/contact/activity-timeline";
 import { NotesPanel, type NoteWithAuthor } from "@/components/contact/notes-panel";
+import { FilesPanel, type FileWithUploader } from "@/components/contact/files-panel";
+import { SequenceEnrollmentsPanel, type EnrollmentWithSequence } from "@/components/contact/sequence-enrollments-panel";
+import { ConsentPanel } from "@/components/contact/consent-panel";
 import { TaskChecklist, type TaskRow } from "@/components/tasks/task-checklist";
-import { formatCurrency } from "@/lib/types";
+import { formatCurrency, type ConsentStatus } from "@/lib/types";
 
 export default async function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,6 +24,9 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
     { data: activities },
     { data: notes },
     { data: members },
+    { data: files },
+    { data: enrollments },
+    { data: availableSequences },
     { data: customFields },
     { data: customValues },
   ] = await Promise.all([
@@ -47,6 +53,13 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
       .eq("contact_id", id)
       .order("created_at", { ascending: false }),
     supabase.from("users").select("id, full_name, email"),
+    supabase.from("files").select("*, uploader:users(full_name, email)").eq("contact_id", id).order("created_at", { ascending: false }),
+    supabase
+      .from("sequence_enrollments")
+      .select("*, sequence:sequences(id, name)")
+      .eq("contact_id", id)
+      .order("created_at", { ascending: false }),
+    supabase.from("sequences").select("id, name").eq("is_active", true).order("name"),
     supabase.from("custom_fields").select("*").eq("entity_type", "contact").order("position"),
     supabase.from("custom_field_values").select("*").eq("entity_type", "contact").eq("entity_id", id),
   ]);
@@ -67,6 +80,8 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             <TabsTrigger value="notes">Notes ({notes?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="deals">Deals ({deals?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="tasks">Tasks ({tasks?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="files">Files ({files?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="sequences">Sequences ({enrollments?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
         </div>
@@ -106,19 +121,44 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
           <TaskChecklist tasks={(tasks ?? []) as TaskRow[]} contactId={contact.id} />
         </TabsContent>
 
+        <TabsContent value="files" className="max-w-md">
+          <FilesPanel contactId={contact.id} organizationId={contact.organization_id} files={(files ?? []) as FileWithUploader[]} />
+        </TabsContent>
+
+        <TabsContent value="sequences" className="max-w-md">
+          <SequenceEnrollmentsPanel
+            contactId={contact.id}
+            enrollments={(enrollments ?? []) as EnrollmentWithSequence[]}
+            availableSequences={availableSequences ?? []}
+          />
+        </TabsContent>
+
         <TabsContent value="details" className="max-w-md">
-          {customFields && customFields.length > 0 ? (
-            <dl className="flex flex-col gap-3">
-              {customFields.map((field) => (
-                <div key={field.id}>
-                  <dt className="text-xs font-medium uppercase text-muted-foreground">{field.name}</dt>
-                  <dd className="text-sm">{formatCustomValue(valuesByField.get(field.id))}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <p className="text-sm text-muted-foreground">No custom fields defined for contacts yet.</p>
-          )}
+          <div className="flex flex-col gap-6">
+            {customFields && customFields.length > 0 ? (
+              <dl className="flex flex-col gap-3">
+                {customFields.map((field) => (
+                  <div key={field.id}>
+                    <dt className="text-xs font-medium uppercase text-muted-foreground">{field.name}</dt>
+                    <dd className="text-sm">{formatCustomValue(valuesByField.get(field.id))}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="text-sm text-muted-foreground">No custom fields defined for contacts yet.</p>
+            )}
+
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">Consent</p>
+              <ConsentPanel
+                contactId={contact.id}
+                consentStatus={contact.consent_status as ConsentStatus}
+                emailOptOut={contact.email_opt_out}
+                smsOptOut={contact.sms_opt_out}
+                consentUpdatedAt={contact.consent_updated_at}
+              />
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

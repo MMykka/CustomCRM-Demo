@@ -86,8 +86,22 @@ export function ContactHeader({ contact, allTags, activeTags }: { contact: Heade
       </div>
 
       <LogActivityDialog kind="call" contactId={contact.id} open={callOpen} onOpenChange={setCallOpen} />
-      <LogMessageDialog channel="sms" contactId={contact.id} toAddress={contact.phone} open={smsOpen} onOpenChange={setSmsOpen} />
-      <LogMessageDialog channel="email" contactId={contact.id} toAddress={contact.email} open={emailOpen} onOpenChange={setEmailOpen} />
+      <LogMessageDialog
+        channel="sms"
+        contactId={contact.id}
+        toAddress={contact.phone}
+        optedOut={contact.sms_opt_out}
+        open={smsOpen}
+        onOpenChange={setSmsOpen}
+      />
+      <LogMessageDialog
+        channel="email"
+        contactId={contact.id}
+        toAddress={contact.email}
+        optedOut={contact.email_opt_out}
+        open={emailOpen}
+        onOpenChange={setEmailOpen}
+      />
       <QuickTaskDialog
         contactId={contact.id}
         title="Schedule a meeting"
