@@ -45,25 +45,6 @@ export async function addContact(input: { firstName: string; lastName: string; e
   return data.id as string;
 }
 
-export async function addActivityNote(contactId: string, body: string) {
-  if (!body.trim()) return;
-
-  const appUser = await requireAppUser();
-  const supabase = await createClient();
-
-  const { error } = await supabase.from("activities").insert({
-    organization_id: appUser.organization_id!,
-    contact_id: contactId,
-    user_id: appUser.id,
-    type: "note",
-    body: body.trim(),
-  });
-
-  if (error) throw error;
-
-  revalidatePath(`/contacts/${contactId}`);
-}
-
 export async function updateContact(
   contactId: string,
   input: {

@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ContactHeader } from "@/components/contact/contact-header";
 import { DuplicateBanner } from "@/components/contact/duplicate-banner";
 import { findDuplicateContacts } from "@/lib/actions/duplicates";
-import { ActivityTimeline, type ActivityWithUser } from "@/components/contact/activity-timeline";
+import { ContactDetailLayout, RailSection } from "@/components/contact/contact-detail-layout";
+import { UnifiedTimeline } from "@/components/contact/unified-timeline";
+import { getContactTimeline } from "@/lib/timeline";
 import { NotesPanel, type NoteWithAuthor } from "@/components/contact/notes-panel";
 import { FilesPanel, type FileWithUploader } from "@/components/contact/files-panel";
 import { SequenceEnrollmentsPanel, type EnrollmentWithSequence } from "@/components/contact/sequence-enrollments-panel";
 import { ConsentPanel } from "@/components/contact/consent-panel";
+import { AiAssistantPanel } from "@/components/contact/ai-assistant-panel";
 import { TaskChecklist, type TaskRow } from "@/components/tasks/task-checklist";
 import { contactDisplayName, formatCurrency, type ConsentStatus } from "@/lib/types";
 
@@ -23,7 +25,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
     { data: allTags },
     { data: deals },
     { data: tasks },
-    { data: activities },
+    timelineEvents,
     { data: notes },
     { data: members },
     { data: files },
@@ -45,11 +47,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
       .eq("contact_id", id)
       .order("created_at", { ascending: false }),
     supabase.from("tasks").select("*, contact:contacts(id, first_name, last_name, email)").eq("contact_id", id).order("due_at", { ascending: true }),
-    supabase
-      .from("activities")
-      .select("*, user:users(full_name, email)")
-      .eq("contact_id", id)
-      .order("created_at", { ascending: false }),
+    getContactTimeline(supabase, id),
     supabase
       .from("notes")
       .select("*, author:users!notes_author_id_fkey(full_name, email)")
@@ -81,83 +79,63 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
       />
       <ContactHeader contact={contact} allTags={allTags ?? []} activeTags={activeTags} />
 
-      <Tabs defaultValue="timeline">
-        <div className="overflow-x-auto">
-          <TabsList>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="notes">Notes ({notes?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="deals">Deals ({deals?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks ({tasks?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="files">Files ({files?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="sequences">Sequences ({enrollments?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-          </TabsList>
-        </div>
+      <ContactDetailLayout
+        main={
+          <>
+            <RailSection title="Timeline">
+              <UnifiedTimeline events={timelineEvents} />
+            </RailSection>
+            <RailSection title="Notes">
+              <NotesPanel contactId={contact.id} notes={(notes ?? []) as NoteWithAuthor[]} members={members ?? []} />
+            </RailSection>
+          </>
+        }
+        rail={
+          <>
+            <RailSection title="AI Assistant">
+              <AiAssistantPanel contactId={contact.id} />
+            </RailSection>
 
-        <TabsContent value="timeline" className="max-w-2xl">
-          <ActivityTimeline contactId={contact.id} activities={(activities ?? []) as ActivityWithUser[]} />
-        </TabsContent>
+            <RailSection title={`Deals (${deals?.length ?? 0})`}>
+              {deals && deals.length > 0 ? (
+                <ul className="flex flex-col divide-y">
+                  {deals.map((deal) => (
+                    <li key={deal.id} className="flex items-center justify-between py-2">
+                      <div className="min-w-0">
+                        <Link href="/pipeline" className="truncate text-sm font-medium hover:underline">
+                          {deal.title}
+                        </Link>
+                        <p className="text-xs text-muted-foreground">{deal.pipeline?.name}</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Badge variant="outline">{deal.stage?.name}</Badge>
+                        <span className="text-sm font-medium">{formatCurrency(deal.value, deal.currency)}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">No deals yet.</p>
+              )}
+            </RailSection>
 
-        <TabsContent value="notes">
-          <NotesPanel contactId={contact.id} notes={(notes ?? []) as NoteWithAuthor[]} members={members ?? []} />
-        </TabsContent>
+            <RailSection title={`Tasks (${tasks?.length ?? 0})`}>
+              <TaskChecklist tasks={(tasks ?? []) as TaskRow[]} contactId={contact.id} />
+            </RailSection>
 
-        <TabsContent value="deals">
-          {deals && deals.length > 0 ? (
-            <ul className="flex flex-col divide-y">
-              {deals.map((deal) => (
-                <li key={deal.id} className="flex items-center justify-between py-2.5">
-                  <div>
-                    <Link href="/pipeline" className="text-sm font-medium hover:underline">
-                      {deal.title}
-                    </Link>
-                    <p className="text-xs text-muted-foreground">{deal.pipeline?.name}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{deal.stage?.name}</Badge>
-                    <span className="text-sm font-medium">{formatCurrency(deal.value, deal.currency)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">No deals yet.</p>
-          )}
-        </TabsContent>
+            <RailSection title={`Files (${files?.length ?? 0})`}>
+              <FilesPanel contactId={contact.id} organizationId={contact.organization_id} files={(files ?? []) as FileWithUploader[]} />
+            </RailSection>
 
-        <TabsContent value="tasks" className="max-w-2xl">
-          <TaskChecklist tasks={(tasks ?? []) as TaskRow[]} contactId={contact.id} />
-        </TabsContent>
+            <RailSection title={`Sequences (${enrollments?.length ?? 0})`}>
+              <SequenceEnrollmentsPanel
+                contactId={contact.id}
+                enrollments={(enrollments ?? []) as EnrollmentWithSequence[]}
+                availableSequences={availableSequences ?? []}
+              />
+            </RailSection>
 
-        <TabsContent value="files" className="max-w-md">
-          <FilesPanel contactId={contact.id} organizationId={contact.organization_id} files={(files ?? []) as FileWithUploader[]} />
-        </TabsContent>
-
-        <TabsContent value="sequences" className="max-w-md">
-          <SequenceEnrollmentsPanel
-            contactId={contact.id}
-            enrollments={(enrollments ?? []) as EnrollmentWithSequence[]}
-            availableSequences={availableSequences ?? []}
-          />
-        </TabsContent>
-
-        <TabsContent value="details" className="max-w-md">
-          <div className="flex flex-col gap-6">
-            {customFields && customFields.length > 0 ? (
-              <dl className="flex flex-col gap-3">
-                {customFields.map((field) => (
-                  <div key={field.id}>
-                    <dt className="text-xs font-medium uppercase text-muted-foreground">{field.name}</dt>
-                    <dd className="text-sm">{formatCustomValue(valuesByField.get(field.id))}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : (
-              <p className="text-sm text-muted-foreground">No custom fields defined for contacts yet.</p>
-            )}
-
-            <div>
-              <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">Consent</p>
+            <RailSection title="Consent">
               <ConsentPanel
                 contactId={contact.id}
                 consentStatus={contact.consent_status as ConsentStatus}
@@ -165,10 +143,25 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
                 smsOptOut={contact.sms_opt_out}
                 consentUpdatedAt={contact.consent_updated_at}
               />
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+            </RailSection>
+
+            <RailSection title="Custom fields">
+              {customFields && customFields.length > 0 ? (
+                <dl className="flex flex-col gap-3">
+                  {customFields.map((field) => (
+                    <div key={field.id}>
+                      <dt className="text-xs font-medium uppercase text-muted-foreground">{field.name}</dt>
+                      <dd className="text-sm">{formatCustomValue(valuesByField.get(field.id))}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <p className="text-sm text-muted-foreground">No custom fields defined for contacts yet.</p>
+              )}
+            </RailSection>
+          </>
+        }
+      />
     </div>
   );
 }
