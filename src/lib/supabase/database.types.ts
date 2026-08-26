@@ -255,45 +255,66 @@ export type Database = {
         Row: {
           avatar_url: string | null
           company_id: string | null
+          consent_status: string
+          consent_updated_at: string | null
           created_at: string
           email: string | null
+          email_opt_out: boolean
           first_name: string | null
           id: string
           job_title: string | null
           last_name: string | null
+          lead_score: number
+          lifecycle_stage: string
           organization_id: string
           owner_id: string | null
           phone: string | null
+          phone_normalized: string | null
+          sms_opt_out: boolean
           source: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           company_id?: string | null
+          consent_status?: string
+          consent_updated_at?: string | null
           created_at?: string
           email?: string | null
+          email_opt_out?: boolean
           first_name?: string | null
           id?: string
           job_title?: string | null
           last_name?: string | null
+          lead_score?: number
+          lifecycle_stage?: string
           organization_id?: string
           owner_id?: string | null
           phone?: string | null
+          phone_normalized?: string | null
+          sms_opt_out?: boolean
           source?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           company_id?: string | null
+          consent_status?: string
+          consent_updated_at?: string | null
           created_at?: string
           email?: string | null
+          email_opt_out?: boolean
           first_name?: string | null
           id?: string
           job_title?: string | null
           last_name?: string | null
+          lead_score?: number
+          lifecycle_stage?: string
           organization_id?: string
           owner_id?: string | null
           phone?: string | null
+          phone_normalized?: string | null
+          sms_opt_out?: boolean
           source?: string | null
           updated_at?: string
         }
@@ -513,6 +534,84 @@ export type Database = {
           },
         ]
       }
+      files: {
+        Row: {
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          deal_id: string | null
+          file_name: string
+          id: string
+          mime_type: string | null
+          organization_id: string
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          organization_id?: string
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          organization_id?: string
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "files_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string | null
@@ -583,6 +682,97 @@ export type Database = {
           {
             foreignKeyName: "messages_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          author_id: string | null
+          body: string
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          deal_id: string | null
+          id: string
+          is_pinned: boolean
+          mentioned_user_ids: string[]
+          organization_id: string
+          pinned_at: string | null
+          pinned_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          is_pinned?: boolean
+          mentioned_user_ids?: string[]
+          organization_id?: string
+          pinned_at?: string | null
+          pinned_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          is_pinned?: boolean
+          mentioned_user_ids?: string[]
+          organization_id?: string
+          pinned_at?: string | null
+          pinned_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_pinned_by_fkey"
+            columns: ["pinned_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -740,6 +930,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "pipelines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_views: {
+        Row: {
+          column_visibility: Json | null
+          created_at: string
+          created_by: string | null
+          entity_type: string
+          filters: Json
+          id: string
+          is_shared: boolean
+          name: string
+          organization_id: string
+          sort: Json | null
+          updated_at: string
+        }
+        Insert: {
+          column_visibility?: Json | null
+          created_at?: string
+          created_by?: string | null
+          entity_type?: string
+          filters?: Json
+          id?: string
+          is_shared?: boolean
+          name: string
+          organization_id?: string
+          sort?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          column_visibility?: Json | null
+          created_at?: string
+          created_by?: string | null
+          entity_type?: string
+          filters?: Json
+          id?: string
+          is_shared?: boolean
+          name?: string
+          organization_id?: string
+          sort?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_views_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_views_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1188,6 +1435,20 @@ export type Database = {
     Functions: {
       create_organization: { Args: { org_name: string }; Returns: string }
       current_org_id: { Args: never; Returns: string }
+      find_contact_duplicates: {
+        Args: { p_contact_id: string }
+        Returns: {
+          candidate_id: string
+          match_reason: string
+          score: number
+        }[]
+      }
+      merge_contacts: {
+        Args: { loser_id: string; winner_id: string }
+        Returns: undefined
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       switch_active_organization: {
         Args: { target_org_id: string }
         Returns: undefined

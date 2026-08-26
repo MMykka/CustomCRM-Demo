@@ -4,11 +4,23 @@ import type { Tables } from "@/lib/supabase/database.types";
 // columns. `supabase gen types` can't see CHECK constraints (only real
 // Postgres enums), so these mirror them by hand from the migrations.
 export type DealStatus = "open" | "won" | "lost";
-export type ActivityType = "note" | "call" | "email" | "sms" | "meeting" | "stage_change" | "task_completed" | "other";
+export type ActivityType =
+  | "note"
+  | "call"
+  | "email"
+  | "sms"
+  | "meeting"
+  | "stage_change"
+  | "task_completed"
+  | "form_submission"
+  | "other";
 export type TaskStatus = "open" | "completed" | "cancelled";
 export type TaskPriority = "low" | "normal" | "high";
 export type UserRole = "owner" | "admin" | "member";
 export type NotificationType = "task_assigned" | "mention" | "reply" | "other";
+export type LifecycleStage = "subscriber" | "lead" | "mql" | "sql" | "opportunity" | "customer" | "evangelist" | "other";
+export type ConsentStatus = "unknown" | "granted" | "revoked";
+export type CallOutcome = "connected" | "voicemail" | "no_answer" | "busy";
 
 export type Contact = Tables<"contacts">;
 export type Company = Tables<"companies">;
@@ -24,6 +36,22 @@ export type CustomFieldValue = Tables<"custom_field_values">;
 export type Organization = Tables<"organizations">;
 export type OrganizationMember = Tables<"organization_members">;
 export type Notification = Tables<"notifications">;
+export type Note = Tables<"notes">;
+export type ContactFile = Tables<"files">;
+export type SavedView = Tables<"saved_views">;
+export type Message = Tables<"messages">;
+export type SequenceEnrollment = Tables<"sequence_enrollments">;
+
+export const LIFECYCLE_STAGE_LABELS: Record<LifecycleStage, string> = {
+  subscriber: "Subscriber",
+  lead: "Lead",
+  mql: "MQL",
+  sql: "SQL",
+  opportunity: "Opportunity",
+  customer: "Customer",
+  evangelist: "Evangelist",
+  other: "Other",
+};
 
 export function contactDisplayName(contact: Pick<Contact, "first_name" | "last_name" | "email">) {
   const name = [contact.first_name, contact.last_name].filter(Boolean).join(" ").trim();
