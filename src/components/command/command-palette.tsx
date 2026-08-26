@@ -8,7 +8,7 @@ import { useQuickActions } from "@/components/quick-actions/quick-actions-provid
 import { globalSearch, type SearchResults } from "@/lib/actions/search";
 import { NAV_ITEMS } from "@/lib/nav";
 
-const EMPTY_RESULTS: SearchResults = { contacts: [], companies: [], deals: [], messages: [] };
+const EMPTY_RESULTS: SearchResults = { contacts: [], companies: [], deals: [], messages: [], notes: [], files: [] };
 
 export function CommandPalette() {
   const [query, setQuery] = useState("");
@@ -123,6 +123,26 @@ export function CommandPalette() {
               {displayResults.messages.map((m) => (
                 <CommandItem key={m.id} onSelect={() => go(m.contactId ? `/contacts/${m.contactId}` : "/inbox")}>
                   {m.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ) : null}
+
+          {displayResults.notes.length > 0 ? (
+            <CommandGroup heading="Notes">
+              {displayResults.notes.map((n) => (
+                <CommandItem key={n.id} onSelect={() => go(n.contactId ? `/contacts/${n.contactId}` : "/contacts")}>
+                  {n.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ) : null}
+
+          {displayResults.files.length > 0 ? (
+            <CommandGroup heading="Files">
+              {displayResults.files.map((f) => (
+                <CommandItem key={f.id} onSelect={() => go(f.contactId ? `/contacts/${f.contactId}` : "/contacts")}>
+                  {f.label}
                 </CommandItem>
               ))}
             </CommandGroup>
