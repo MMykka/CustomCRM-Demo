@@ -1,11 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { format } from "date-fns";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { TagBadge } from "@/components/tag-badge";
-import { contactDisplayName, initialsFor } from "@/lib/types";
+import { contactDisplayName, initialsFor, LIFECYCLE_STAGE_LABELS, type LifecycleStage } from "@/lib/types";
 import type { ContactRow } from "./contacts-table";
+
+export const CONTACT_COLUMN_OPTIONS: { id: string; label: string }[] = [
+  { id: "name", label: "Name" },
+  { id: "email", label: "Email" },
+  { id: "phone", label: "Phone" },
+  { id: "company", label: "Company" },
+  { id: "owner", label: "Owner" },
+  { id: "tags", label: "Tags" },
+  { id: "lifecycle_stage", label: "Lifecycle stage" },
+  { id: "lead_score", label: "Lead score" },
+  { id: "source", label: "Source" },
+  { id: "created_at", label: "Created" },
+];
 
 export const contactColumns: ColumnDef<ContactRow>[] = [
   {
@@ -63,10 +78,25 @@ export const contactColumns: ColumnDef<ContactRow>[] = [
         ))}
       </div>
     ),
-    filterFn: (row, _id, filterValue: string[]) => {
-      if (!filterValue?.length) return true;
-      const tagIds = row.original.tags.map((tag) => tag.id);
-      return filterValue.some((tagId) => tagIds.includes(tagId));
-    },
+  },
+  {
+    id: "lifecycle_stage",
+    header: "Lifecycle stage",
+    cell: ({ row }) => <Badge variant="outline">{LIFECYCLE_STAGE_LABELS[row.original.lifecycle_stage as LifecycleStage]}</Badge>,
+  },
+  {
+    id: "lead_score",
+    header: "Lead score",
+    cell: ({ row }) => row.original.lead_score,
+  },
+  {
+    accessorKey: "source",
+    header: "Source",
+    cell: ({ getValue }) => <span className="text-muted-foreground">{(getValue() as string | null) ?? "—"}</span>,
+  },
+  {
+    id: "created_at",
+    header: "Created",
+    cell: ({ row }) => <span className="text-muted-foreground">{format(new Date(row.original.created_at), "MMM d, yyyy")}</span>,
   },
 ];
