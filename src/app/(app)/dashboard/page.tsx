@@ -12,6 +12,8 @@ import { getTeamActivityFeed } from "@/lib/dashboard-feed";
 import { TeamActivityFeed } from "@/components/dashboard/team-activity-feed";
 import { getRepLeaderboard } from "@/lib/dashboard-leaderboard";
 import { RepLeaderboard } from "@/components/dashboard/rep-leaderboard";
+import { getSpeedToLead } from "@/lib/dashboard-speed-to-lead";
+import { SpeedToLeadCard } from "@/components/dashboard/speed-to-lead-card";
 
 export default async function DashboardPage() {
   const appUser = await requireAppUser();
@@ -32,6 +34,7 @@ export default async function DashboardPage() {
     cardMetrics,
     feedItems,
     leaderboardRows,
+    speedToLead,
   ] = await Promise.all([
     supabase.from("contacts").select("*", { count: "exact", head: true }),
     supabase.from("companies").select("*", { count: "exact", head: true }),
@@ -54,6 +57,7 @@ export default async function DashboardPage() {
     getDashboardCardMetrics(supabase, startOfDay, endOfDay),
     getTeamActivityFeed(supabase),
     getRepLeaderboard(supabase),
+    getSpeedToLead(supabase),
   ]);
 
   const openDealsTotal = (openDeals ?? []).reduce((sum, d) => sum + d.value, 0);
@@ -98,23 +102,27 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Open pipeline value by stage{pipeline ? ` — ${pipeline.name}` : ""}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
-          {chartData.length > 0 ? (
-            <DealsByStageChart data={chartData} />
-          ) : (
-            <p className="text-sm text-muted-foreground">No pipeline data yet.</p>
-          )}
-          {(pipelineCount ?? 0) > 1 ? (
-            <p className="text-xs text-muted-foreground">
-              Showing {pipeline?.name} only — open deals in other pipelines aren&apos;t included in this breakdown.
-            </p>
-          ) : null}
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Open pipeline value by stage{pipeline ? ` — ${pipeline.name}` : ""}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {chartData.length > 0 ? (
+              <DealsByStageChart data={chartData} />
+            ) : (
+              <p className="text-sm text-muted-foreground">No pipeline data yet.</p>
+            )}
+            {(pipelineCount ?? 0) > 1 ? (
+              <p className="text-xs text-muted-foreground">
+                Showing {pipeline?.name} only — open deals in other pipelines aren&apos;t included in this breakdown.
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <SpeedToLeadCard result={speedToLead} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
