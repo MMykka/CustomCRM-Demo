@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { Circle } from "lucide-react";
 import { TIMELINE_TYPE_ICONS } from "@/lib/timeline-icons";
 import type { TeamFeedItem } from "@/lib/dashboard-feed";
 
-export function TeamActivityFeed({ items }: { items: TeamFeedItem[] }) {
+export function TeamActivityFeed({ items, showAbsoluteDates = false }: { items: TeamFeedItem[]; showAbsoluteDates?: boolean }) {
   if (items.length === 0) {
     return <p className="text-sm text-muted-foreground">No team activity yet.</p>;
   }
@@ -31,7 +31,11 @@ export function TeamActivityFeed({ items }: { items: TeamFeedItem[] }) {
                   </>
                 ) : null}
               </p>
-              <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(item.occurredAt), { addSuffix: true })}</p>
+              <p className="text-xs text-muted-foreground">
+                {showAbsoluteDates
+                  ? format(new Date(item.occurredAt), "MMM d, yyyy h:mm a")
+                  : formatDistanceToNow(new Date(item.occurredAt), { addSuffix: true })}
+              </p>
             </div>
           </li>
         );

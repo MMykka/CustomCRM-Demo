@@ -188,6 +188,7 @@ export function KanbanBoard({
           onOpenChange={(open) => {
             if (!open) setWonLostPrompt(null);
           }}
+          navigateToDealOnSuccess
         />
       ) : null}
     </DndContext>

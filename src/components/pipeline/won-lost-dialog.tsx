@@ -19,6 +19,7 @@ export function WonLostDialog({
   stageId,
   open,
   onOpenChange,
+  navigateToDealOnSuccess = false,
 }: {
   mode: "won" | "lost";
   dealId: string;
@@ -27,6 +28,11 @@ export function WonLostDialog({
   stageId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** When true, navigates to the deal's own page after marking it -- for
+   * contexts like the kanban board where the deal otherwise vanishes from
+   * view the instant it closes (open-deal queries exclude it), leaving no
+   * way to find it. Not needed when already on the deal's own page. */
+  navigateToDealOnSuccess?: boolean;
 }) {
   const reasons = mode === "won" ? DEAL_WON_REASONS : DEAL_LOST_REASONS;
   const [isPending, startTransition] = useTransition();
@@ -61,6 +67,9 @@ export function WonLostDialog({
         toast.success("Deal marked lost");
       }
       onOpenChange(false);
+      if (navigateToDealOnSuccess) {
+        router.push(`/pipeline/${dealId}`);
+      }
       router.refresh();
     });
   }
