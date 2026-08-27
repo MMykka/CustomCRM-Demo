@@ -25,3 +25,38 @@ export async function notifyDealStageChanged(payload: {
     console.error("Failed to notify n8n of deal stage change", error);
   }
 }
+
+// Two separate env vars (rather than one combined URL) so won/lost can
+// point at operationally different n8n workflows, matching the
+// one-var-per-event-type convention above.
+export async function notifyDealWon(payload: { dealId: string; organizationId: string; pipelineId: string; finalValue: number; reason: string }) {
+  const webhookUrl = process.env.N8N_DEAL_WON_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  try {
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "deal.won", ...payload }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch (error) {
+    console.error("Failed to notify n8n of deal won", error);
+  }
+}
+
+export async function notifyDealLost(payload: { dealId: string; organizationId: string; pipelineId: string; reason: string }) {
+  const webhookUrl = process.env.N8N_DEAL_LOST_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  try {
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "deal.lost", ...payload }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch (error) {
+    console.error("Failed to notify n8n of deal lost", error);
+  }
+}

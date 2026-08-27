@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Pencil } from "lucide-react";
+import { Pencil, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EditDealDialog } from "@/components/pipeline/edit-deal-dialog";
+import { WonLostDialog } from "@/components/pipeline/won-lost-dialog";
 import { contactDisplayName, formatCurrency, type Deal, type Stage } from "@/lib/types";
 
 type HeaderDeal = Deal & {
@@ -15,8 +16,12 @@ type HeaderDeal = Deal & {
   owner: { id: string; full_name: string | null; email: string } | null;
 };
 
-export function DealHeader({ deal, stage }: { deal: HeaderDeal; stage: Stage }) {
+export function DealHeader({ deal, stage, pipelineStages }: { deal: HeaderDeal; stage: Stage; pipelineStages: Stage[] }) {
   const [editOpen, setEditOpen] = useState(false);
+  const [wonLostMode, setWonLostMode] = useState<"won" | "lost" | null>(null);
+  const wonStage = pipelineStages.find((s) => s.is_won);
+  const lostStage = pipelineStages.find((s) => s.is_lost);
+  const isClosed = deal.status !== "open";
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border p-4">
@@ -51,13 +56,40 @@ export function DealHeader({ deal, stage }: { deal: HeaderDeal; stage: Stage }) 
             {deal.owner ? <span>Owner: {deal.owner.full_name ?? deal.owner.email}</span> : null}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-          <Pencil className="size-4" />
-          Edit
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          {!isClosed && wonStage ? (
+            <Button variant="outline" size="sm" onClick={() => setWonLostMode("won")}>
+              <ThumbsUp className="size-4" />
+              Mark won
+            </Button>
+          ) : null}
+          {!isClosed && lostStage ? (
+            <Button variant="outline" size="sm" onClick={() => setWonLostMode("lost")}>
+              <ThumbsDown className="size-4" />
+              Mark lost
+            </Button>
+          ) : null}
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+            <Pencil className="size-4" />
+            Edit
+          </Button>
+        </div>
       </div>
 
       <EditDealDialog deal={deal} open={editOpen} onOpenChange={setEditOpen} />
+      {wonLostMode && (wonLostMode === "won" ? wonStage : lostStage) ? (
+        <WonLostDialog
+          mode={wonLostMode}
+          dealId={deal.id}
+          defaultValue={deal.value}
+          currency={deal.currency}
+          stageId={(wonLostMode === "won" ? wonStage : lostStage)!.id}
+          open={Boolean(wonLostMode)}
+          onOpenChange={(open) => {
+            if (!open) setWonLostMode(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

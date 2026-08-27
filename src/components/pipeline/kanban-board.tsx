@@ -9,6 +9,7 @@ import { useHasMounted } from "@/lib/use-has-mounted";
 import type { Company, Contact, Deal, Stage } from "@/lib/types";
 import { KanbanColumn } from "./kanban-column";
 import { DealCard, type DealMeta } from "./deal-card";
+import { WonLostDialog } from "./won-lost-dialog";
 
 export type DealWithRelations = Deal & {
   contact: Pick<Contact, "id" | "first_name" | "last_name" | "email"> | null;
@@ -40,6 +41,7 @@ export function KanbanBoard({
   const [syncedInitialDeals, setSyncedInitialDeals] = useState(initialDeals);
   const [activeDeal, setActiveDeal] = useState<DealWithRelations | null>(null);
   const [collapsedColumns, setCollapsedColumns] = useState<Record<string, boolean>>({});
+  const [wonLostPrompt, setWonLostPrompt] = useState<{ dealId: string; mode: "won" | "lost"; stageId: string } | null>(null);
   const [syncedMounted, setSyncedMounted] = useState(false);
   const dealsRef = useRef(deals);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
@@ -139,9 +141,15 @@ export function KanbanBoard({
     const deal = deals.find((d) => d.id === dealId);
     if (!deal || deal.stage_id === toStageId) return;
 
-    // Note: dropping onto a won/lost stage just moves the deal for now --
-    // it doesn't yet flip deals.status, which is the known gap the Won/Lost
-    // dialog (a later phase) closes by intercepting this exact case.
+    // Dropping onto a won/lost stage opens the Won/Lost dialog instead of
+    // moving the deal directly -- no optimistic update happens here, so the
+    // card visually snaps back to its column if the dialog is cancelled.
+    const targetStage = stages.find((s) => s.id === toStageId);
+    if (targetStage?.is_won || targetStage?.is_lost) {
+      setWonLostPrompt({ dealId, mode: targetStage.is_won ? "won" : "lost", stageId: toStageId });
+      return;
+    }
+
     const previousStageId = deal.stage_id;
     setDeals((current) => current.map((d) => (d.id === dealId ? { ...d, stage_id: toStageId } : d)));
 
@@ -168,6 +176,20 @@ export function KanbanBoard({
         ))}
       </div>
       <DragOverlay>{activeDeal ? <DealCard deal={activeDeal} isOverlay /> : null}</DragOverlay>
+
+      {wonLostPrompt ? (
+        <WonLostDialog
+          mode={wonLostPrompt.mode}
+          dealId={wonLostPrompt.dealId}
+          defaultValue={deals.find((d) => d.id === wonLostPrompt.dealId)?.value ?? 0}
+          currency={deals.find((d) => d.id === wonLostPrompt.dealId)?.currency ?? "USD"}
+          stageId={wonLostPrompt.stageId}
+          open={Boolean(wonLostPrompt)}
+          onOpenChange={(open) => {
+            if (!open) setWonLostPrompt(null);
+          }}
+        />
+      ) : null}
     </DndContext>
   );
 }

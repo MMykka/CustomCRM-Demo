@@ -46,11 +46,13 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
 
   if (!deal) notFound();
 
+  const { data: pipelineStages } = await supabase.from("stages").select("*").eq("pipeline_id", deal.pipeline_id).order("position");
+
   const valuesByField = new Map((customValues ?? []).map((v) => [v.custom_field_id, v.value]));
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <DealHeader deal={deal} stage={deal.stage!} />
+      <DealHeader deal={deal} stage={deal.stage!} pipelineStages={pipelineStages ?? []} />
 
       <ContactDetailLayout
         main={
