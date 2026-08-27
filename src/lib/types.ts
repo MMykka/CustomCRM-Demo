@@ -16,6 +16,8 @@ export type ActivityType =
   | "other";
 export type TaskStatus = "open" | "completed" | "cancelled";
 export type TaskPriority = "low" | "normal" | "high";
+export type TaskType = "task" | "call" | "email" | "follow_up";
+export type RecurrenceUnit = "day" | "week" | "month";
 export type UserRole = "owner" | "admin" | "member";
 export type NotificationType = "task_assigned" | "mention" | "reply" | "other";
 export type LifecycleStage = "subscriber" | "lead" | "mql" | "sql" | "opportunity" | "customer" | "evangelist" | "other";

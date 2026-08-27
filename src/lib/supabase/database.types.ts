@@ -1320,8 +1320,12 @@ export type Database = {
           id: string
           organization_id: string
           priority: string
+          recurrence_interval: number | null
+          recurrence_unit: string | null
+          snoozed_until: string | null
           status: string
           title: string
+          type: string
           updated_at: string
         }
         Insert: {
@@ -1337,8 +1341,12 @@ export type Database = {
           id?: string
           organization_id?: string
           priority?: string
+          recurrence_interval?: number | null
+          recurrence_unit?: string | null
+          snoozed_until?: string | null
           status?: string
           title: string
+          type?: string
           updated_at?: string
         }
         Update: {
@@ -1354,8 +1362,12 @@ export type Database = {
           id?: string
           organization_id?: string
           priority?: string
+          recurrence_interval?: number | null
+          recurrence_unit?: string | null
+          snoozed_until?: string | null
           status?: string
           title?: string
+          type?: string
           updated_at?: string
         }
         Relationships: [
