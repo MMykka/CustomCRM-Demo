@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Users, Handshake, TrendingUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -43,9 +44,9 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
       <CompanyHeader company={company} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        <StatTile label="Contacts" value={String(contacts?.length ?? 0)} />
-        <StatTile label="Open deals" value={String(openDeals.length)} hint={formatCurrency(openDealValue, currency)} accent="blue" />
-        <StatTile label="Total revenue" value={formatCurrency(totalRevenue, currency)} hint={`${wonDeals.length} won`} />
+        <StatTile label="Contacts" value={String(contacts?.length ?? 0)} icon={Users} />
+        <StatTile label="Open deals" value={String(openDeals.length)} hint={formatCurrency(openDealValue, currency)} icon={Handshake} accent="blue" />
+        <StatTile label="Total revenue" value={formatCurrency(totalRevenue, currency)} hint={`${wonDeals.length} won`} icon={TrendingUp} accent="yellow" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">

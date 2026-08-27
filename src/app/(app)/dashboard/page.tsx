@@ -1,3 +1,4 @@
+import { Users, Building2, Handshake, ListChecks } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 import { StatTile } from "@/components/dashboard/stat-tile";
@@ -54,10 +55,16 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile label="Contacts" value={String(contactCount ?? 0)} />
-        <StatTile label="Companies" value={String(companyCount ?? 0)} />
-        <StatTile label="Open deals" value={String(openDeals?.length ?? 0)} hint={formatCurrency(openDealsTotal, currency)} accent="blue" />
-        <StatTile label="Due today" value={String(tasksDueToday ?? 0)} hint="tasks assigned to you" />
+        <StatTile label="Contacts" value={String(contactCount ?? 0)} icon={Users} />
+        <StatTile label="Companies" value={String(companyCount ?? 0)} icon={Building2} />
+        <StatTile
+          label="Open deals"
+          value={String(openDeals?.length ?? 0)}
+          hint={formatCurrency(openDealsTotal, currency)}
+          icon={Handshake}
+          accent="blue"
+        />
+        <StatTile label="Due today" value={String(tasksDueToday ?? 0)} hint="tasks assigned to you" icon={ListChecks} accent="yellow" />
       </div>
 
       <Card>
