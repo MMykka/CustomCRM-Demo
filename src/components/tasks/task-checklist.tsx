@@ -3,12 +3,13 @@
 import { useRef, useTransition } from "react";
 import Link from "next/link";
 import { format, isPast } from "date-fns";
+import { ListTodo, Mail, Phone, RotateCcw, type LucideIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toggleTaskComplete, addTask } from "@/lib/actions/tasks";
-import { contactDisplayName, type Task, type TaskPriority } from "@/lib/types";
+import { contactDisplayName, type Task, type TaskPriority, type TaskType } from "@/lib/types";
 
 export type TaskRow = Task & { contact: { id: string; first_name: string | null; last_name: string | null; email: string | null } | null };
 
@@ -17,6 +18,22 @@ const PRIORITY_VARIANT: Record<TaskPriority, "default" | "secondary" | "destruct
   normal: "default",
   high: "destructive",
 };
+
+export const TASK_TYPE_OPTIONS: { value: TaskType; label: string }[] = [
+  { value: "task", label: "General" },
+  { value: "call", label: "Call" },
+  { value: "email", label: "Email" },
+  { value: "follow_up", label: "Follow-up" },
+];
+
+export const TASK_TYPE_ICON: Record<TaskType, LucideIcon> = {
+  task: ListTodo,
+  call: Phone,
+  email: Mail,
+  follow_up: RotateCcw,
+};
+
+const TASK_TYPE_LABEL: Record<TaskType, string> = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.value, o.label])) as Record<TaskType, string>;
 
 export function TaskChecklist({
   tasks,
@@ -63,12 +80,16 @@ export function TaskChecklist({
         ) : (
           tasks.map((task) => {
             const overdue = task.due_at && task.status === "open" && isPast(new Date(task.due_at));
+            const TypeIcon = TASK_TYPE_ICON[task.type as TaskType];
             return (
               <li key={task.id} className="flex items-center gap-3 py-2.5">
                 <Checkbox
                   checked={task.status === "completed"}
                   onCheckedChange={(checked) => startTransition(() => toggleTaskComplete(task.id, checked === true))}
                 />
+                <span title={TASK_TYPE_LABEL[task.type as TaskType]} className="shrink-0">
+                  <TypeIcon className="size-3.5 text-muted-foreground" />
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className={`truncate text-sm ${task.status === "completed" ? "text-muted-foreground line-through" : ""}`}>{task.title}</p>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
