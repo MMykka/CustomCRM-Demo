@@ -5,30 +5,46 @@ import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent, Pointe
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { moveDealToStage } from "@/lib/actions/pipeline";
-import type { Contact, Deal, Stage } from "@/lib/types";
+import { useHasMounted } from "@/lib/use-has-mounted";
+import type { Company, Contact, Deal, Stage } from "@/lib/types";
 import { KanbanColumn } from "./kanban-column";
-import { DealCard } from "./deal-card";
+import { DealCard, type DealMeta } from "./deal-card";
 
 export type DealWithRelations = Deal & {
   contact: Pick<Contact, "id" | "first_name" | "last_name" | "email"> | null;
+  company: Pick<Company, "id" | "name"> | null;
   owner: { id: string; full_name: string | null; email: string } | null;
 };
+
+function readCollapsedColumns(pipelineId: string): Record<string, boolean> {
+  try {
+    const raw = window.localStorage.getItem(`hub:pipeline:${pipelineId}:collapsedColumns`);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
 
 export function KanbanBoard({
   pipelineId,
   stages,
   initialDeals,
+  dealMeta,
 }: {
   pipelineId: string;
   stages: Stage[];
   initialDeals: DealWithRelations[];
+  dealMeta: Record<string, DealMeta>;
 }) {
   const [deals, setDeals] = useState(initialDeals);
   const [syncedInitialDeals, setSyncedInitialDeals] = useState(initialDeals);
   const [activeDeal, setActiveDeal] = useState<DealWithRelations | null>(null);
+  const [collapsedColumns, setCollapsedColumns] = useState<Record<string, boolean>>({});
+  const [syncedMounted, setSyncedMounted] = useState(false);
   const dealsRef = useRef(deals);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const instanceId = useId();
+  const hasMounted = useHasMounted();
 
   // useState(initialDeals) only seeds state on first mount; a same-route
   // router.refresh() (e.g. after creating a deal elsewhere) re-renders this
@@ -38,6 +54,13 @@ export function KanbanBoard({
   if (initialDeals !== syncedInitialDeals) {
     setSyncedInitialDeals(initialDeals);
     setDeals(initialDeals);
+  }
+
+  // Load the persisted collapsed-columns preference once hydration is safe
+  // (render-time state adjustment, same idiom as contacts-list.tsx).
+  if (hasMounted && !syncedMounted) {
+    setSyncedMounted(true);
+    setCollapsedColumns(readCollapsedColumns(pipelineId));
   }
 
   useEffect(() => {
@@ -76,7 +99,7 @@ export function KanbanBoard({
           if (!alreadyHasIt) {
             const { data } = await supabase
               .from("deals")
-              .select("*, contact:contacts(id, first_name, last_name, email), owner:users(id, full_name, email)")
+              .select("*, contact:contacts(id, first_name, last_name, email), company:companies(id, name), owner:users(id, full_name, email)")
               .eq("id", updated.id)
               .single();
             if (data) {
@@ -92,6 +115,16 @@ export function KanbanBoard({
     };
   }, [pipelineId, instanceId]);
 
+  function toggleColumnCollapse(stageId: string) {
+    const next = { ...collapsedColumns, [stageId]: !collapsedColumns[stageId] };
+    setCollapsedColumns(next);
+    try {
+      window.localStorage.setItem(`hub:pipeline:${pipelineId}:collapsedColumns`, JSON.stringify(next));
+    } catch {
+      // ignore unavailable localStorage
+    }
+  }
+
   function handleDragStart(event: DragStartEvent) {
     setActiveDeal((event.active.data.current?.deal as DealWithRelations | undefined) ?? null);
   }
@@ -106,6 +139,9 @@ export function KanbanBoard({
     const deal = deals.find((d) => d.id === dealId);
     if (!deal || deal.stage_id === toStageId) return;
 
+    // Note: dropping onto a won/lost stage just moves the deal for now --
+    // it doesn't yet flip deals.status, which is the known gap the Won/Lost
+    // dialog (a later phase) closes by intercepting this exact case.
     const previousStageId = deal.stage_id;
     setDeals((current) => current.map((d) => (d.id === dealId ? { ...d, stage_id: toStageId } : d)));
 
@@ -121,7 +157,14 @@ export function KanbanBoard({
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={() => setActiveDeal(null)}>
       <div className="flex flex-1 gap-3 overflow-x-auto pb-4">
         {stages.map((stage) => (
-          <KanbanColumn key={stage.id} stage={stage} deals={deals.filter((deal) => deal.stage_id === stage.id)} />
+          <KanbanColumn
+            key={stage.id}
+            stage={stage}
+            deals={deals.filter((deal) => deal.stage_id === stage.id)}
+            dealMeta={dealMeta}
+            collapsed={collapsedColumns[stage.id] ?? false}
+            onToggleCollapse={() => toggleColumnCollapse(stage.id)}
+          />
         ))}
       </div>
       <DragOverlay>{activeDeal ? <DealCard deal={activeDeal} isOverlay /> : null}</DragOverlay>
