@@ -27,11 +27,11 @@ export function AuthLayout({ title, children }: { title: string; children: React
             <div className="h-2 w-10 rounded-full bg-brand-blue-foreground/40" />
             <div className="mt-2 h-2 w-16 rounded-full bg-brand-blue-foreground/25" />
           </div>
-          <div className="row-span-2 flex items-end rounded-2xl bg-brand-pink p-4">
-            <div className="size-8 rounded-full bg-brand-pink-foreground/40" />
+          <div className="row-span-2 flex items-end rounded-2xl border-2 border-brand-blue bg-white/5 p-4">
+            <div className="size-8 rounded-full border-2 border-brand-blue" />
           </div>
-          <div className="rounded-2xl bg-brand-yellow p-4">
-            <div className="h-2 w-8 rounded-full bg-brand-yellow-foreground/40" />
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="h-2 w-8 rounded-full bg-brand-blue" />
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <div className="h-2 w-10 rounded-full bg-white/20" />

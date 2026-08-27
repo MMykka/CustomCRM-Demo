@@ -1,20 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 
-const ACCENT_CARD_CLASSES = {
-  blue: "bg-brand-blue",
-  pink: "bg-brand-pink",
-  yellow: "bg-brand-yellow",
-  neutral: "",
-} as const;
-
-const ACCENT_LABEL_CLASSES = {
-  blue: "text-brand-blue-foreground",
-  pink: "text-brand-pink-foreground",
-  yellow: "text-brand-yellow-foreground",
-  neutral: "text-muted-foreground",
-} as const;
-
-export type StatTileAccent = keyof typeof ACCENT_CARD_CLASSES;
+export type StatTileAccent = "blue" | "neutral";
 
 export function StatTile({
   label,
@@ -28,9 +14,9 @@ export function StatTile({
   accent?: StatTileAccent;
 }) {
   return (
-    <Card className={`py-4 ${ACCENT_CARD_CLASSES[accent]}`}>
+    <Card className={`py-4 ${accent === "blue" ? "border-l-2 border-l-brand-blue-foreground" : ""}`}>
       <CardContent className="flex flex-col gap-1 px-4">
-        <p className={`text-xs font-medium uppercase ${ACCENT_LABEL_CLASSES[accent]}`}>{label}</p>
+        <p className={`text-xs font-medium uppercase ${accent === "blue" ? "text-brand-blue-foreground" : "text-muted-foreground"}`}>{label}</p>
         <p className="text-2xl font-semibold tracking-tight">{value}</p>
         {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       </CardContent>

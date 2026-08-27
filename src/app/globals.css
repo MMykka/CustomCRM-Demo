@@ -41,10 +41,6 @@
   --color-card: var(--card);
   --color-brand-blue: var(--brand-blue);
   --color-brand-blue-foreground: var(--brand-blue-foreground);
-  --color-brand-yellow: var(--brand-yellow);
-  --color-brand-yellow-foreground: var(--brand-yellow-foreground);
-  --color-brand-pink: var(--brand-pink);
-  --color-brand-pink-foreground: var(--brand-pink-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -73,13 +69,12 @@
   --border: oklch(0.9 0.009 258);
   --input: oklch(0.9 0.009 258);
   --ring: oklch(0.6 0.09 258);
-  /* Chart palette cycles through the three brand accents (blue, pink,
-     yellow) plus two deeper shades of blue/pink. */
-  --chart-1: oklch(0.6 0.1 258);
-  --chart-2: oklch(0.62 0.14 350);
-  --chart-3: oklch(0.66 0.13 85);
-  --chart-4: oklch(0.4 0.09 258);
-  --chart-5: oklch(0.44 0.12 350);
+  /* Monochromatic blue chart palette, lightest to darkest. */
+  --chart-1: oklch(0.8 0.06 258);
+  --chart-2: oklch(0.68 0.09 258);
+  --chart-3: oklch(0.56 0.1 258);
+  --chart-4: oklch(0.44 0.09 258);
+  --chart-5: oklch(0.32 0.07 258);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0.005 258);
   --sidebar-foreground: oklch(0.17 0.014 258);
@@ -90,15 +85,11 @@
   --sidebar-border: oklch(0.9 0.009 258);
   --sidebar-ring: oklch(0.6 0.09 258);
 
-  /* Brand accents: the same slate blue, plus a soft yellow and a pink --
-     used for badges/tags/highlights (bg-brand-... / text-brand-...-
-     foreground) and echoed in --primary and the chart palette above. */
+  /* The slate blue accent -- used for highlights/borders/badges via
+     bg-brand-blue / text-brand-blue-foreground, and echoed in the chart
+     palette above and the tinted --border/--muted/--accent tokens. */
   --brand-blue: oklch(0.9 0.03 250);
   --brand-blue-foreground: oklch(0.45 0.08 258);
-  --brand-yellow: oklch(0.94 0.07 95);
-  --brand-yellow-foreground: oklch(0.55 0.14 80);
-  --brand-pink: oklch(0.91 0.045 350);
-  --brand-pink-foreground: oklch(0.55 0.16 350);
 }
 
 .dark {
@@ -120,11 +111,11 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.6 0.09 258);
-  --chart-1: oklch(0.65 0.11 258);
-  --chart-2: oklch(0.65 0.14 350);
-  --chart-3: oklch(0.7 0.13 85);
-  --chart-4: oklch(0.5 0.1 258);
-  --chart-5: oklch(0.52 0.13 350);
+  --chart-1: oklch(0.85 0.06 258);
+  --chart-2: oklch(0.73 0.09 258);
+  --chart-3: oklch(0.61 0.1 258);
+  --chart-4: oklch(0.49 0.09 258);
+  --chart-5: oklch(0.37 0.07 258);
   --sidebar: oklch(0.205 0.008 258);
   --sidebar-foreground: oklch(0.985 0.004 258);
   --sidebar-primary: oklch(0.922 0 0);
@@ -136,10 +127,6 @@
 
   --brand-blue: oklch(0.34 0.045 254);
   --brand-blue-foreground: oklch(0.82 0.05 254);
-  --brand-yellow: oklch(0.34 0.05 90);
-  --brand-yellow-foreground: oklch(0.85 0.1 90);
-  --brand-pink: oklch(0.34 0.05 350);
-  --brand-pink-foreground: oklch(0.85 0.08 350);
 }
 
 @layer base {

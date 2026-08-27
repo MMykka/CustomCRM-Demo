@@ -54,9 +54,9 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile label="Contacts" value={String(contactCount ?? 0)} accent="blue" />
-        <StatTile label="Companies" value={String(companyCount ?? 0)} accent="pink" />
-        <StatTile label="Open deals" value={String(openDeals?.length ?? 0)} hint={formatCurrency(openDealsTotal, currency)} accent="yellow" />
+        <StatTile label="Contacts" value={String(contactCount ?? 0)} />
+        <StatTile label="Companies" value={String(companyCount ?? 0)} />
+        <StatTile label="Open deals" value={String(openDeals?.length ?? 0)} hint={formatCurrency(openDealsTotal, currency)} accent="blue" />
         <StatTile label="Due today" value={String(tasksDueToday ?? 0)} hint="tasks assigned to you" />
       </div>
 
