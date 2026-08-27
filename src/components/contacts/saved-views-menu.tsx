@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useHasMounted } from "@/lib/use-has-mounted";
-import { createSavedView, deleteSavedView } from "@/lib/actions/saved-views";
+import { createSavedView, deleteSavedView, type SavedViewEntityType } from "@/lib/actions/saved-views";
 import type { SavedView } from "@/lib/types";
 
 const LEGACY_KEY = "hub:contacts:savedViews";
@@ -25,7 +25,17 @@ function readLegacyViews(): LegacyView[] {
   }
 }
 
-export function SavedViewsMenu({ views, currentUserId }: { views: SavedView[]; currentUserId: string }) {
+export function SavedViewsMenu({
+  views,
+  currentUserId,
+  entityType = "contact",
+  basePath = "/contacts",
+}: {
+  views: SavedView[];
+  currentUserId: string;
+  entityType?: SavedViewEntityType;
+  basePath?: string;
+}) {
   const [isPending, startTransition] = useTransition();
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [newViewName, setNewViewName] = useState("");
@@ -50,14 +60,14 @@ export function SavedViewsMenu({ views, currentUserId }: { views: SavedView[]; c
   function applyView(view: SavedView) {
     const filters = (view.filters as Record<string, string>) ?? {};
     const params = new URLSearchParams(filters);
-    router.push(`/contacts${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(`${basePath}${params.toString() ? `?${params.toString()}` : ""}`);
   }
 
   function saveCurrentView() {
     if (!newViewName.trim()) return;
     const filters = Object.fromEntries(searchParams.entries());
     startTransition(async () => {
-      await createSavedView({ name: newViewName, isShared, filters });
+      await createSavedView({ name: newViewName, isShared, filters, entityType });
       setNewViewName("");
       setIsShared(false);
       setSaveDialogOpen(false);
@@ -96,7 +106,7 @@ export function SavedViewsMenu({ views, currentUserId }: { views: SavedView[]; c
       />
       <PopoverContent align="start" className="w-72 p-2">
         <div className="flex flex-col gap-1">
-          {!legacyDismissed && legacyViews.length > 0 && views.length === 0 ? (
+          {entityType === "contact" && !legacyDismissed && legacyViews.length > 0 && views.length === 0 ? (
             <div className="mb-1 flex flex-col gap-1.5 rounded-md border bg-muted/40 p-2 text-xs">
               <p>
                 Import {legacyViews.length} view{legacyViews.length === 1 ? "" : "s"} saved in this browser?
@@ -127,7 +137,7 @@ export function SavedViewsMenu({ views, currentUserId }: { views: SavedView[]; c
                     size="icon"
                     className="size-7"
                     disabled={isPending}
-                    onClick={() => startTransition(async () => { await deleteSavedView(view.id); router.refresh(); })}
+                    onClick={() => startTransition(async () => { await deleteSavedView(view.id, entityType); router.refresh(); })}
                   >
                     <Trash2 className="size-3.5" />
                   </Button>
