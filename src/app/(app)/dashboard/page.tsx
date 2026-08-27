@@ -1,10 +1,13 @@
-import { Users, Building2, Handshake, ListChecks } from "lucide-react";
+import { format } from "date-fns";
+import { Users, Building2, Handshake, ListChecks, UserPlus, PhoneCall, Award } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { DealsByStageChart } from "@/components/dashboard/deals-by-stage-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/types";
+import { getDashboardCardMetrics } from "@/lib/dashboard-metrics";
+import { contactsFiltersToSearchParams } from "@/lib/contacts-query";
 
 export default async function DashboardPage() {
   const appUser = await requireAppUser();
@@ -22,6 +25,7 @@ export default async function DashboardPage() {
     { count: tasksDueToday },
     { data: pipeline },
     { count: pipelineCount },
+    cardMetrics,
   ] = await Promise.all([
     supabase.from("contacts").select("*", { count: "exact", head: true }),
     supabase.from("companies").select("*", { count: "exact", head: true }),
@@ -41,6 +45,7 @@ export default async function DashboardPage() {
       .limit(1)
       .single(),
     supabase.from("pipelines").select("*", { count: "exact", head: true }).eq("organization_id", appUser.organization_id!),
+    getDashboardCardMetrics(supabase, startOfDay, endOfDay),
   ]);
 
   const openDealsTotal = (openDeals ?? []).reduce((sum, d) => sum + d.value, 0);
@@ -52,6 +57,9 @@ export default async function DashboardPage() {
     value: (openDeals ?? []).filter((d) => d.stage_id === stage.id).reduce((sum, d) => sum + d.value, 0),
   }));
 
+  const today = format(new Date(), "yyyy-MM-dd");
+  const newLeadsHref = `/contacts?${contactsFiltersToSearchParams({ stages: ["lead"], dateFrom: today, dateTo: today }).toString()}`;
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
@@ -60,13 +68,25 @@ export default async function DashboardPage() {
         <StatTile label="Contacts" value={String(contactCount ?? 0)} icon={Users} />
         <StatTile label="Companies" value={String(companyCount ?? 0)} icon={Building2} />
         <StatTile
-          label="Open deals"
-          value={String(openDeals?.length ?? 0)}
-          hint={formatCurrency(openDealsTotal, currency)}
+          label="Pipeline value"
+          value={formatCurrency(openDealsTotal, currency)}
+          hint={`${openDeals?.length ?? 0} open deals`}
           icon={Handshake}
           accent="blue"
         />
         <StatTile label="Due today" value={String(tasksDueToday ?? 0)} hint="tasks assigned to you" icon={ListChecks} accent="yellow" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatTile label="New leads today" value={String(cardMetrics.newLeadsToday)} icon={UserPlus} accent="blue" href={newLeadsHref} />
+        <StatTile label="Calls booked this week" value={String(cardMetrics.callsBookedThisWeek)} icon={PhoneCall} />
+        <StatTile
+          label="Deals won this month"
+          value={formatCurrency(cardMetrics.dealsWonThisMonth.value, cardMetrics.dealsWonThisMonth.currency)}
+          hint={`${cardMetrics.dealsWonThisMonth.count} won`}
+          icon={Award}
+          accent="blue"
+        />
       </div>
 
       <Card>

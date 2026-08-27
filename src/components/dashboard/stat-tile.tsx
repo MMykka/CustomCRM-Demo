@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -15,14 +16,16 @@ export function StatTile({
   hint,
   icon: Icon,
   accent = "neutral",
+  href,
 }: {
   label: string;
   value: string;
   hint?: string;
   icon: LucideIcon;
   accent?: StatTileAccent;
+  href?: string;
 }) {
-  return (
+  const card = (
     <Card className="py-4 transition-shadow hover:shadow-md">
       <CardContent className="flex items-start justify-between gap-3 px-4">
         <div className="flex flex-col gap-1">
@@ -35,5 +38,13 @@ export function StatTile({
         </div>
       </CardContent>
     </Card>
+  );
+
+  return href ? (
+    <Link href={href} className="block">
+      {card}
+    </Link>
+  ) : (
+    card
   );
 }
