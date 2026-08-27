@@ -6,16 +6,19 @@ import { getLeadVolumeByMonth, getWonRevenueByMonth } from "@/lib/reports-time-s
 import { LeadVolumeChart } from "@/components/reports/lead-volume-chart";
 import { WonRevenueChart } from "@/components/reports/won-revenue-chart";
 import { ReportExportButton } from "@/components/reports/report-export-button";
+import { getRepPerformanceAllTime } from "@/lib/reports-rep-performance";
+import { RepPerformanceTable } from "@/components/reports/rep-performance-table";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/types";
 
 export default async function ReportsPage() {
   await requireAppUser();
   const supabase = await createClient();
-  const [forecast, leadVolume, wonRevenue] = await Promise.all([
+  const [forecast, leadVolume, wonRevenue, repPerformance] = await Promise.all([
     getForecastByMonth(supabase),
     getLeadVolumeByMonth(supabase),
     getWonRevenueByMonth(supabase),
+    getRepPerformanceAllTime(supabase),
   ]);
 
   return (
@@ -70,6 +73,18 @@ export default async function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Rep performance — all time</CardTitle>
+          <CardAction>
+            <ReportExportButton filename={`rep-performance-export-${new Date().toISOString().slice(0, 10)}.csv`} rows={repPerformance} />
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <RepPerformanceTable rows={repPerformance} />
+        </CardContent>
+      </Card>
     </div>
   );
 }
