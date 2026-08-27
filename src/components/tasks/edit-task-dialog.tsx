@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { updateTask } from "@/lib/actions/tasks";
 import { TASK_TYPE_OPTIONS, type TaskRow } from "@/components/tasks/task-shared";
 import { RecurrenceFields } from "@/components/tasks/recurrence-fields";
-import type { RecurrenceUnit, TaskPriority, TaskType } from "@/lib/types";
+import { contactDisplayName, type RecurrenceUnit, type TaskPriority, type TaskType } from "@/lib/types";
 
 const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
   { value: "low", label: "Low" },
@@ -82,6 +83,16 @@ export function EditTaskDialog({ task, open, onOpenChange }: { task: TaskRow; op
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="edit-task-title">Title</Label>
             <Input id="edit-task-title" value={titleValue} onChange={(e) => setTitleValue(e.target.value)} autoFocus />
+            {task.contact ? (
+              <Link href={`/contacts/${task.contact.id}`} className="text-xs text-muted-foreground hover:underline">
+                View contact: {contactDisplayName(task.contact)}
+              </Link>
+            ) : null}
+            {task.deal_id ? (
+              <Link href={`/pipeline/${task.deal_id}`} className="text-xs text-muted-foreground hover:underline">
+                View deal
+              </Link>
+            ) : null}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">

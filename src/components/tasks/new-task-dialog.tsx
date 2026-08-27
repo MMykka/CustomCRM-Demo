@@ -13,7 +13,16 @@ import { TASK_TYPE_OPTIONS } from "@/components/tasks/task-shared";
 import { RecurrenceFields } from "@/components/tasks/recurrence-fields";
 import type { RecurrenceUnit, TaskType } from "@/lib/types";
 
-export function NewTaskDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function NewTaskDialog({
+  open,
+  onOpenChange,
+  defaultDueAt,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** ISO date (YYYY-MM-DD) to prefill, e.g. when opened from a calendar day cell. When set, stays on the current page after creating instead of navigating to /tasks. */
+  defaultDueAt?: string;
+}) {
   const [isPending, startTransition] = useTransition();
   const [type, setType] = useState<TaskType>("task");
   const [repeatEnabled, setRepeatEnabled] = useState(false);
@@ -49,7 +58,7 @@ export function NewTaskDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       formRef.current?.reset();
       reset();
       onOpenChange(false);
-      router.push("/tasks");
+      if (!defaultDueAt) router.push("/tasks");
       router.refresh();
     });
   }
@@ -68,7 +77,7 @@ export function NewTaskDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="dueAt">Due date</Label>
-              <Input id="dueAt" name="dueAt" type="date" />
+              <Input id="dueAt" name="dueAt" type="date" defaultValue={defaultDueAt} />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Type</Label>
