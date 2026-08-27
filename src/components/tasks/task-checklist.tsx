@@ -1,14 +1,15 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useState, useRef, useTransition } from "react";
 import Link from "next/link";
-import { format, isPast } from "date-fns";
-import { ListTodo, Mail, Phone, RotateCcw, type LucideIcon } from "lucide-react";
+import { addDays, addHours, addWeeks, format, isPast, setHours, setMinutes, startOfDay } from "date-fns";
+import { AlarmClockOff, Clock, ListTodo, Mail, Phone, RotateCcw, type LucideIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toggleTaskComplete, addTask } from "@/lib/actions/tasks";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toggleTaskComplete, addTask, snoozeTask, unsnoozeTask } from "@/lib/actions/tasks";
 import { contactDisplayName, type Task, type TaskPriority, type TaskType } from "@/lib/types";
 
 export type TaskRow = Task & { contact: { id: string; first_name: string | null; last_name: string | null; email: string | null } | null };
@@ -106,11 +107,82 @@ export function TaskChecklist({
                 <Badge variant={PRIORITY_VARIANT[task.priority as TaskPriority]} className="capitalize">
                   {task.priority}
                 </Badge>
+                {task.status === "open" ? <SnoozeControl taskId={task.id} snoozedUntil={task.snoozed_until} /> : null}
               </li>
             );
           })
         )}
       </ul>
     </div>
+  );
+}
+
+function SnoozeControl({ taskId, snoozedUntil }: { taskId: string; snoozedUntil: string | null }) {
+  const [isPending, startTransition] = useTransition();
+  const [customValue, setCustomValue] = useState("");
+  const isSnoozed = snoozedUntil && new Date(snoozedUntil) > new Date();
+
+  function snoozeUntil(date: Date) {
+    startTransition(() => snoozeTask(taskId, date.toISOString()));
+  }
+
+  if (isSnoozed) {
+    return (
+      <div className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+        <span>Snoozed until {format(new Date(snoozedUntil), "MMM d, h:mm a")}</span>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          disabled={isPending}
+          onClick={() => startTransition(() => unsnoozeTask(taskId))}
+          title="Unsnooze"
+        >
+          <AlarmClockOff className="size-3.5" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button variant="ghost" size="icon-sm" disabled={isPending} title="Snooze">
+            <Clock className="size-3.5" />
+          </Button>
+        }
+      />
+      <PopoverContent align="end" className="w-56 p-2">
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"
+            className="rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+            onClick={() => snoozeUntil(addHours(new Date(), 1))}
+          >
+            1 hour
+          </button>
+          <button
+            type="button"
+            className="rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+            onClick={() => snoozeUntil(setMinutes(setHours(addDays(startOfDay(new Date()), 1), 9), 0))}
+          >
+            Tomorrow 9am
+          </button>
+          <button
+            type="button"
+            className="rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+            onClick={() => snoozeUntil(addWeeks(new Date(), 1))}
+          >
+            Next week
+          </button>
+          <div className="mt-1 flex items-center gap-1.5 border-t pt-2">
+            <Input type="datetime-local" value={customValue} onChange={(e) => setCustomValue(e.target.value)} className="flex-1" />
+            <Button size="sm" disabled={!customValue || isPending} onClick={() => snoozeUntil(new Date(customValue))}>
+              Snooze
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

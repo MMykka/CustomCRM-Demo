@@ -1,4 +1,4 @@
-import { isPast, isToday } from "date-fns";
+import { isFuture, isPast, isToday } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 import { TaskChecklist, type TaskRow } from "@/components/tasks/task-checklist";
@@ -21,10 +21,14 @@ export default async function TasksPage() {
   const open = all.filter((t) => t.status === "open");
   const completed = all.filter((t) => t.status === "completed");
 
-  const overdue = open.filter((t) => t.due_at && isPast(new Date(t.due_at)) && !isToday(new Date(t.due_at)));
-  const today = open.filter((t) => t.due_at && isToday(new Date(t.due_at)));
-  const upcoming = open.filter((t) => t.due_at && !isPast(new Date(t.due_at)) && !isToday(new Date(t.due_at)));
-  const noDueDate = open.filter((t) => !t.due_at);
+  const isSnoozed = (t: TaskRow) => Boolean(t.snoozed_until && isFuture(new Date(t.snoozed_until)));
+  const snoozed = open.filter(isSnoozed);
+  const activeOpen = open.filter((t) => !isSnoozed(t));
+
+  const overdue = activeOpen.filter((t) => t.due_at && isPast(new Date(t.due_at)) && !isToday(new Date(t.due_at)));
+  const today = activeOpen.filter((t) => t.due_at && isToday(new Date(t.due_at)));
+  const upcoming = activeOpen.filter((t) => t.due_at && !isPast(new Date(t.due_at)) && !isToday(new Date(t.due_at)));
+  const noDueDate = activeOpen.filter((t) => !t.due_at);
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8 p-6">
@@ -39,6 +43,7 @@ export default async function TasksPage() {
         <Section title="Overdue" tasks={overdue} showContact />
       ) : null}
       <Section title="Today" tasks={today} showContact />
+      {snoozed.length > 0 ? <Section title="Snoozed" tasks={snoozed} showContact /> : null}
       {upcoming.length > 0 ? <Section title="Upcoming" tasks={upcoming} showContact /> : null}
       {noDueDate.length > 0 ? <Section title="No due date" tasks={noDueDate} showContact /> : null}
       {completed.length > 0 ? <Section title="Completed" tasks={completed} showContact /> : null}
