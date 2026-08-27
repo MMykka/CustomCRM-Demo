@@ -10,6 +10,8 @@ import { getDashboardCardMetrics } from "@/lib/dashboard-metrics";
 import { contactsFiltersToSearchParams } from "@/lib/contacts-query";
 import { getTeamActivityFeed } from "@/lib/dashboard-feed";
 import { TeamActivityFeed } from "@/components/dashboard/team-activity-feed";
+import { getRepLeaderboard } from "@/lib/dashboard-leaderboard";
+import { RepLeaderboard } from "@/components/dashboard/rep-leaderboard";
 
 export default async function DashboardPage() {
   const appUser = await requireAppUser();
@@ -29,6 +31,7 @@ export default async function DashboardPage() {
     { count: pipelineCount },
     cardMetrics,
     feedItems,
+    leaderboardRows,
   ] = await Promise.all([
     supabase.from("contacts").select("*", { count: "exact", head: true }),
     supabase.from("companies").select("*", { count: "exact", head: true }),
@@ -50,6 +53,7 @@ export default async function DashboardPage() {
     supabase.from("pipelines").select("*", { count: "exact", head: true }).eq("organization_id", appUser.organization_id!),
     getDashboardCardMetrics(supabase, startOfDay, endOfDay),
     getTeamActivityFeed(supabase),
+    getRepLeaderboard(supabase),
   ]);
 
   const openDealsTotal = (openDeals ?? []).reduce((sum, d) => sum + d.value, 0);
@@ -112,14 +116,25 @@ export default async function DashboardPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Team activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TeamActivityFeed items={feedItems} />
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Team activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TeamActivityFeed items={feedItems} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Leaderboard — this month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RepLeaderboard rows={leaderboardRows} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
