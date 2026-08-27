@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/types";
 import { getDashboardCardMetrics } from "@/lib/dashboard-metrics";
 import { contactsFiltersToSearchParams } from "@/lib/contacts-query";
+import { getTeamActivityFeed } from "@/lib/dashboard-feed";
+import { TeamActivityFeed } from "@/components/dashboard/team-activity-feed";
 
 export default async function DashboardPage() {
   const appUser = await requireAppUser();
@@ -26,6 +28,7 @@ export default async function DashboardPage() {
     { data: pipeline },
     { count: pipelineCount },
     cardMetrics,
+    feedItems,
   ] = await Promise.all([
     supabase.from("contacts").select("*", { count: "exact", head: true }),
     supabase.from("companies").select("*", { count: "exact", head: true }),
@@ -46,6 +49,7 @@ export default async function DashboardPage() {
       .single(),
     supabase.from("pipelines").select("*", { count: "exact", head: true }).eq("organization_id", appUser.organization_id!),
     getDashboardCardMetrics(supabase, startOfDay, endOfDay),
+    getTeamActivityFeed(supabase),
   ]);
 
   const openDealsTotal = (openDeals ?? []).reduce((sum, d) => sum + d.value, 0);
@@ -105,6 +109,15 @@ export default async function DashboardPage() {
               Showing {pipeline?.name} only — open deals in other pipelines aren&apos;t included in this breakdown.
             </p>
           ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Team activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TeamActivityFeed items={feedItems} />
         </CardContent>
       </Card>
     </div>

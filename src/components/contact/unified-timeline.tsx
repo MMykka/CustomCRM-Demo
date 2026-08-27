@@ -2,23 +2,10 @@
 
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { StickyNote, Phone, Mail, MessageSquare, Users, ArrowRightLeft, CheckCircle2, FileText, Repeat, Circle } from "lucide-react";
+import { Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TimelineEvent, TimelineEventType } from "@/lib/timeline";
-
-const TYPE_ICONS: Record<TimelineEventType, typeof StickyNote> = {
-  note: StickyNote,
-  call: Phone,
-  email: Mail,
-  sms: MessageSquare,
-  meeting: Users,
-  stage_change: ArrowRightLeft,
-  task_completed: CheckCircle2,
-  form_submission: FileText,
-  sequence_enrolled: Repeat,
-  sequence_completed: Repeat,
-  other: Circle,
-};
+import { TIMELINE_TYPE_ICONS } from "@/lib/timeline-icons";
 
 const FILTERS: { key: string; label: string; types: TimelineEventType[] }[] = [
   { key: "all", label: "All", types: [] },
@@ -66,7 +53,7 @@ export function UnifiedTimeline({ events }: { events: TimelineEvent[] }) {
           <p className="text-sm text-muted-foreground">Nothing here yet.</p>
         ) : (
           visible.map((event) => {
-            const Icon = TYPE_ICONS[event.type] ?? Circle;
+            const Icon = TIMELINE_TYPE_ICONS[event.type] ?? Circle;
             const summary = eventSummary(event);
             return (
               <li key={event.id} className="flex gap-3">
