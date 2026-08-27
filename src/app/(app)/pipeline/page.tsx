@@ -1,5 +1,8 @@
+import Link from "next/link";
+import { Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
 import { KanbanBoard } from "@/components/pipeline/kanban-board";
 
 export default async function PipelinePage() {
@@ -35,9 +38,15 @@ export default async function PipelinePage() {
 
   return (
     <div className="flex h-screen flex-col gap-4 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{pipeline.name}</h1>
-        <p className="text-sm text-muted-foreground">{deals?.length ?? 0} open deals</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">{pipeline.name}</h1>
+          <p className="text-sm text-muted-foreground">{deals?.length ?? 0} open deals</p>
+        </div>
+        <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/pipeline/settings" />}>
+          <Settings className="size-4" />
+          Settings
+        </Button>
       </div>
       <KanbanBoard pipelineId={pipeline.id} stages={stages ?? []} initialDeals={deals ?? []} />
     </div>
