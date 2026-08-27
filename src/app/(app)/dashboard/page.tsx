@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Users, Building2, Handshake, ListChecks, UserPlus, PhoneCall, Award } from "lucide-react";
+import { Users, Building2, Handshake, ListChecks, UserPlus, PhoneCall, Award, MessageCircleReply } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 import { StatTile } from "@/components/dashboard/stat-tile";
@@ -79,6 +79,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatTile label="New leads today" value={String(cardMetrics.newLeadsToday)} icon={UserPlus} accent="blue" href={newLeadsHref} />
+        <StatTile label="Replies waiting" value={String(cardMetrics.repliesWaiting)} icon={MessageCircleReply} accent="yellow" />
         <StatTile label="Calls booked this week" value={String(cardMetrics.callsBookedThisWeek)} icon={PhoneCall} />
         <StatTile
           label="Deals won this month"
