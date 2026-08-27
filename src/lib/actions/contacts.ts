@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 import { contactDisplayName, type LifecycleStage } from "@/lib/types";
+import { findCompanyIdForEmail } from "@/lib/companies";
 
 export async function listContactsForPicker() {
   await requireAppUser();
@@ -25,6 +26,8 @@ export async function addContact(input: { firstName: string; lastName: string; e
 
   const appUser = await requireAppUser();
   const supabase = await createClient();
+  const email = input.email.trim() || null;
+  const companyId = await findCompanyIdForEmail(supabase, appUser.organization_id!, email);
 
   const { data, error } = await supabase
     .from("contacts")
@@ -32,9 +35,10 @@ export async function addContact(input: { firstName: string; lastName: string; e
       organization_id: appUser.organization_id!,
       first_name: input.firstName.trim() || null,
       last_name: input.lastName.trim() || null,
-      email: input.email.trim() || null,
+      email,
       phone: input.phone.trim() || null,
       owner_id: appUser.id,
+      company_id: companyId,
     })
     .select("id")
     .single();
@@ -60,21 +64,26 @@ export async function updateContact(
     ownerId: string | null;
   },
 ) {
-  await requireAppUser();
+  const appUser = await requireAppUser();
   const supabase = await createClient();
+
+  const email = input.email.trim() || null;
+  // Only auto-link by domain if the user didn't already pick a company --
+  // an explicit choice always wins.
+  const companyId = input.companyId ?? (await findCompanyIdForEmail(supabase, appUser.organization_id!, email));
 
   const { error } = await supabase
     .from("contacts")
     .update({
       first_name: input.firstName.trim() || null,
       last_name: input.lastName.trim() || null,
-      email: input.email.trim() || null,
+      email,
       phone: input.phone.trim() || null,
       job_title: input.jobTitle.trim() || null,
       source: input.source.trim() || null,
       lifecycle_stage: input.lifecycleStage,
       lead_score: input.leadScore,
-      company_id: input.companyId,
+      company_id: companyId,
       owner_id: input.ownerId,
     })
     .eq("id", contactId);

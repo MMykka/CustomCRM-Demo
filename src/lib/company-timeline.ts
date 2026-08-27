@@ -1,41 +1,28 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { activityTitle, type TimelineEvent, type TimelineEventType } from "@/lib/timeline";
 
-export type TimelineEventType =
-  | "note"
-  | "call"
-  | "email"
-  | "sms"
-  | "meeting"
-  | "stage_change"
-  | "task_completed"
-  | "form_submission"
-  | "sequence_enrolled"
-  | "sequence_completed"
-  | "other";
+// Company-level rollup of the same unified timeline used on the contact
+// page: everything tied directly to the company (activities/notes with
+// company_id set) plus everything tied to any of its contacts (activities,
+// messages, notes) -- a company's timeline is the union of its own events
+// and its contacts' events. Sequence enrollments are contact-scoped only
+// in this schema, so those are rolled up per-contact the same way.
+export async function getCompanyTimeline(supabase: SupabaseClient<Database>, companyId: string, contactIds: string[]): Promise<TimelineEvent[]> {
+  const contactFilter = contactIds.length > 0 ? contactIds : ["00000000-0000-0000-0000-000000000000"];
 
-export type TimelineEvent = {
-  id: string;
-  type: TimelineEventType;
-  occurredAt: string;
-  actor: string | null;
-  title: string;
-  body: string | null;
-  metadata: Record<string, unknown>;
-};
-
-// Merges activities + messages + notes into one chronological feed, plus
-// synthetic sequence-enrollment events. There's no per-step sequence event
-// log in this schema (sequence_enrollments only tracks a current_step
-// pointer), so step-by-step sequence history isn't representable here --
-// only enrollment start/end.
-export async function getContactTimeline(supabase: SupabaseClient<Database>, contactId: string): Promise<TimelineEvent[]> {
   const [{ data: activities }, { data: messages }, { data: notes }, { data: enrollments }] = await Promise.all([
-    supabase.from("activities").select("*, user:users(full_name, email)").eq("contact_id", contactId),
-    supabase.from("messages").select("*, user:users(full_name, email)").eq("contact_id", contactId),
-    supabase.from("notes").select("*, author:users!notes_author_id_fkey(full_name, email)").eq("contact_id", contactId),
-    supabase.from("sequence_enrollments").select("*, sequence:sequences(name)").eq("contact_id", contactId),
+    supabase
+      .from("activities")
+      .select("*, user:users(full_name, email)")
+      .or(`company_id.eq.${companyId},contact_id.in.(${contactFilter.join(",")})`),
+    supabase.from("messages").select("*, user:users(full_name, email)").in("contact_id", contactFilter),
+    supabase
+      .from("notes")
+      .select("*, author:users!notes_author_id_fkey(full_name, email)")
+      .or(`company_id.eq.${companyId},contact_id.in.(${contactFilter.join(",")})`),
+    supabase.from("sequence_enrollments").select("*, sequence:sequences(name)").in("contact_id", contactFilter),
   ]);
 
   const events: TimelineEvent[] = [];
@@ -103,23 +90,4 @@ export async function getContactTimeline(supabase: SupabaseClient<Database>, con
 
   events.sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
   return events.slice(0, 200);
-}
-
-export function activityTitle(type: string) {
-  switch (type) {
-    case "note":
-      return "Added a note";
-    case "call":
-      return "Logged a call";
-    case "meeting":
-      return "Logged a meeting";
-    case "stage_change":
-      return "Moved the deal to a new stage";
-    case "task_completed":
-      return "Completed a task";
-    case "form_submission":
-      return "Submitted a form";
-    default:
-      return "Logged an activity";
-  }
 }
