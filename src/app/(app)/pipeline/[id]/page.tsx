@@ -7,6 +7,8 @@ import { getDealTimeline } from "@/lib/deal-timeline";
 import { NotesPanel, type NoteWithAuthor } from "@/components/contact/notes-panel";
 import { FilesPanel, type FileWithUploader } from "@/components/contact/files-panel";
 import { TaskChecklist, type TaskRow } from "@/components/tasks/task-checklist";
+import { LineItemsPanel } from "@/components/pipeline/line-items-panel";
+import type { DealLineItem } from "@/lib/types";
 
 export default async function DealDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,6 +23,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
     { data: files },
     { data: customFields },
     { data: customValues },
+    { data: lineItems },
   ] = await Promise.all([
     supabase
       .from("deals")
@@ -38,6 +41,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
     supabase.from("files").select("*, uploader:users(full_name, email)").eq("deal_id", id).order("created_at", { ascending: false }),
     supabase.from("custom_fields").select("*").eq("entity_type", "deal").order("position"),
     supabase.from("custom_field_values").select("*").eq("entity_type", "deal").eq("entity_id", id),
+    supabase.from("deal_line_items").select("*").eq("deal_id", id).order("position"),
   ]);
 
   if (!deal) notFound();
@@ -61,6 +65,10 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
         }
         rail={
           <>
+            <RailSection title="Line items">
+              <LineItemsPanel dealId={deal.id} currency={deal.currency} lineItems={(lineItems ?? []) as DealLineItem[]} />
+            </RailSection>
+
             <RailSection title={`Tasks (${tasks?.length ?? 0})`}>
               <TaskChecklist tasks={(tasks ?? []) as TaskRow[]} dealId={deal.id} />
             </RailSection>
