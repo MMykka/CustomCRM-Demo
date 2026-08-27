@@ -8,17 +8,21 @@ import { WonRevenueChart } from "@/components/reports/won-revenue-chart";
 import { ReportExportButton } from "@/components/reports/report-export-button";
 import { getRepPerformanceAllTime } from "@/lib/reports-rep-performance";
 import { RepPerformanceTable } from "@/components/reports/rep-performance-table";
+import { getContactFunnel } from "@/lib/reports-funnel";
+import { FunnelChart } from "@/components/reports/funnel-chart";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/types";
 
 export default async function ReportsPage() {
   await requireAppUser();
   const supabase = await createClient();
-  const [forecast, leadVolume, wonRevenue, repPerformance] = await Promise.all([
+  const [forecast, leadVolume, wonRevenue, repPerformance, funnelBySource, funnelByCampaign] = await Promise.all([
     getForecastByMonth(supabase),
     getLeadVolumeByMonth(supabase),
     getWonRevenueByMonth(supabase),
     getRepPerformanceAllTime(supabase),
+    getContactFunnel(supabase, "source"),
+    getContactFunnel(supabase, "campaign"),
   ]);
 
   return (
@@ -47,6 +51,38 @@ export default async function ReportsPage() {
           {formatCurrency(forecast.undated.value, forecast.currency)} have no expected close date and aren&apos;t included above.
         </p>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Funnel by source</CardTitle>
+          <CardAction>
+            <ReportExportButton filename={`funnel-by-source-export-${new Date().toISOString().slice(0, 10)}.csv`} rows={funnelBySource.buckets} />
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          {funnelBySource.buckets.length > 0 ? (
+            <FunnelChart data={funnelBySource} fieldLabel="source" />
+          ) : (
+            <p className="text-sm text-muted-foreground">No contacts yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Funnel by campaign</CardTitle>
+          <CardAction>
+            <ReportExportButton filename={`funnel-by-campaign-export-${new Date().toISOString().slice(0, 10)}.csv`} rows={funnelByCampaign.buckets} />
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          {funnelByCampaign.buckets.length > 0 ? (
+            <FunnelChart data={funnelByCampaign} fieldLabel="campaign" />
+          ) : (
+            <p className="text-sm text-muted-foreground">No contacts yet.</p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
