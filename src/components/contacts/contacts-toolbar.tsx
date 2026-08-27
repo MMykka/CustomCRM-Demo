@@ -31,6 +31,7 @@ export function ContactsToolbar({
   allTags,
   owners,
   availableSources,
+  availableCampaigns,
   savedViews,
   currentUserId,
   columnVisibility,
@@ -39,6 +40,7 @@ export function ContactsToolbar({
   allTags: Tag[];
   owners: { id: string; full_name: string | null; email: string }[];
   availableSources: string[];
+  availableCampaigns: string[];
   savedViews: SavedView[];
   currentUserId: string;
   columnVisibility: VisibilityState;
@@ -85,9 +87,10 @@ export function ContactsToolbar({
   const ownerOptions: FilterOption[] = owners.map((o) => ({ value: o.id, label: o.full_name ?? o.email }));
   const stageOptions: FilterOption[] = (Object.entries(LIFECYCLE_STAGE_LABELS) as [LifecycleStage, string][]).map(([value, label]) => ({ value, label }));
   const sourceOptions: FilterOption[] = availableSources.map((s) => ({ value: s, label: s }));
+  const campaignOptions: FilterOption[] = availableCampaigns.map((c) => ({ value: c, label: c }));
   const tagOptions: FilterOption[] = allTags.map((t) => ({ value: t.id, label: t.name, color: t.color }));
 
-  const activeFilterCount = ["tags", "owners", "stages", "sources", "from", "to"].filter((k) => searchParams.get(k)).length;
+  const activeFilterCount = ["tags", "owners", "stages", "sources", "campaigns", "from", "to"].filter((k) => searchParams.get(k)).length;
   const sort = searchParams.get("sort") ?? "created_desc";
 
   return (
@@ -121,6 +124,12 @@ export function ContactsToolbar({
           options={sourceOptions}
           selected={searchParams.get("sources")?.split(",").filter(Boolean) ?? []}
           onChange={(next) => updateParams({ sources: next.length ? next.join(",") : null })}
+        />
+        <MultiSelectFilter
+          label="Campaign"
+          options={campaignOptions}
+          selected={searchParams.get("campaigns")?.split(",").filter(Boolean) ?? []}
+          onChange={(next) => updateParams({ campaigns: next.length ? next.join(",") : null })}
         />
 
         <Popover>

@@ -15,6 +15,7 @@ export type TargetField =
   | "phone"
   | "job_title"
   | "source"
+  | "campaign"
   | "lifecycle_stage"
   | "company_name"
   | "owner_email"
@@ -138,6 +139,7 @@ export async function importContactsChunk(rows: ImportRowInput[], mapping: Recor
         phone: fields.phone ?? null,
         job_title: fields.job_title ?? null,
         source: fields.source ?? null,
+        campaign: fields.campaign ?? null,
         company_id: companyId,
         owner_id: ownerId ?? appUser.id,
       };

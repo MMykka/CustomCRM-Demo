@@ -254,6 +254,7 @@ export type Database = {
       contacts: {
         Row: {
           avatar_url: string | null
+          campaign: string | null
           company_id: string | null
           consent_status: string
           consent_updated_at: string | null
@@ -276,6 +277,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          campaign?: string | null
           company_id?: string | null
           consent_status?: string
           consent_updated_at?: string | null
@@ -298,6 +300,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          campaign?: string | null
           company_id?: string | null
           consent_status?: string
           consent_updated_at?: string | null

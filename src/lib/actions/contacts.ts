@@ -58,6 +58,7 @@ export async function updateContact(
     phone: string;
     jobTitle: string;
     source: string;
+    campaign: string;
     lifecycleStage: LifecycleStage;
     leadScore: number;
     companyId: string | null;
@@ -81,6 +82,7 @@ export async function updateContact(
       phone: input.phone.trim() || null,
       job_title: input.jobTitle.trim() || null,
       source: input.source.trim() || null,
+      campaign: input.campaign.trim() || null,
       lifecycle_stage: input.lifecycleStage,
       lead_score: input.leadScore,
       company_id: companyId,

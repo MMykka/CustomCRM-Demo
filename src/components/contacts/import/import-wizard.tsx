@@ -18,6 +18,7 @@ const FIELD_OPTIONS: { value: TargetField; label: string }[] = [
   { value: "phone", label: "Phone" },
   { value: "job_title", label: "Job title" },
   { value: "source", label: "Source" },
+  { value: "campaign", label: "Campaign" },
   { value: "lifecycle_stage", label: "Lifecycle stage" },
   { value: "company_name", label: "Company" },
   { value: "owner_email", label: "Owner (email)" },
@@ -32,6 +33,7 @@ function guessMapping(header: string): TargetField {
   if (h.includes("phone") || h.includes("mobile")) return "phone";
   if (h.includes("title") || h.includes("role")) return "job_title";
   if (h.includes("source")) return "source";
+  if (h.includes("campaign")) return "campaign";
   if (h.includes("stage") || h.includes("lifecycle")) return "lifecycle_stage";
   if (h.includes("company") || h.includes("organization")) return "company_name";
   if (h.includes("owner")) return "owner_email";

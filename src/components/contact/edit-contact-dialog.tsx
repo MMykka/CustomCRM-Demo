@@ -66,6 +66,7 @@ export function EditContactDialog({
         phone: String(formData.get("phone") ?? ""),
         jobTitle: String(formData.get("jobTitle") ?? ""),
         source: String(formData.get("source") ?? ""),
+        campaign: String(formData.get("campaign") ?? ""),
         lifecycleStage,
         leadScore: Number(formData.get("leadScore") ?? 0),
         companyId: companyId || null,
@@ -113,6 +114,10 @@ export function EditContactDialog({
               <Label htmlFor="source">Source</Label>
               <Input id="source" name="source" defaultValue={contact.source ?? ""} />
             </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="campaign">Campaign</Label>
+            <Input id="campaign" name="campaign" defaultValue={contact.campaign ?? ""} />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Company</Label>

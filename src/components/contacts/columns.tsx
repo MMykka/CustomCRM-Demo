@@ -20,6 +20,7 @@ export const CONTACT_COLUMN_OPTIONS: { id: string; label: string }[] = [
   { id: "lifecycle_stage", label: "Lifecycle stage" },
   { id: "lead_score", label: "Lead score" },
   { id: "source", label: "Source" },
+  { id: "campaign", label: "Campaign" },
   { id: "created_at", label: "Created" },
 ];
 
@@ -107,6 +108,11 @@ export const contactColumns: ColumnDef<ContactRow>[] = [
   {
     accessorKey: "source",
     header: "Source",
+    cell: ({ getValue }) => <span className="text-muted-foreground">{(getValue() as string | null) ?? "—"}</span>,
+  },
+  {
+    accessorKey: "campaign",
+    header: "Campaign",
     cell: ({ getValue }) => <span className="text-muted-foreground">{(getValue() as string | null) ?? "—"}</span>,
   },
   {

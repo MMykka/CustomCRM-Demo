@@ -12,6 +12,7 @@ export type ContactsFilters = {
   ownerIds: string[];
   stages: string[];
   sources: string[];
+  campaigns: string[];
   dateFrom: string | null;
   dateTo: string | null;
   sort: ContactsSort;
@@ -42,6 +43,7 @@ export function parseContactsFilters(searchParams: Record<string, string | strin
     ownerIds: parseCsv(searchParams.owners),
     stages: parseCsv(searchParams.stages),
     sources: parseCsv(searchParams.sources),
+    campaigns: parseCsv(searchParams.campaigns),
     dateFrom: typeof searchParams.from === "string" ? searchParams.from : null,
     dateTo: typeof searchParams.to === "string" ? searchParams.to : null,
     sort,
@@ -59,6 +61,7 @@ export function contactsFiltersToSearchParams(filters: Partial<ContactsFilters>)
   if (filters.ownerIds?.length) params.set("owners", filters.ownerIds.join(","));
   if (filters.stages?.length) params.set("stages", filters.stages.join(","));
   if (filters.sources?.length) params.set("sources", filters.sources.join(","));
+  if (filters.campaigns?.length) params.set("campaigns", filters.campaigns.join(","));
   if (filters.dateFrom) params.set("from", filters.dateFrom);
   if (filters.dateTo) params.set("to", filters.dateTo);
   if (filters.sort && filters.sort !== "created_desc") params.set("sort", filters.sort);
@@ -85,6 +88,7 @@ export async function queryContacts(supabase: SupabaseClient<Database>, filters:
   if (filters.ownerIds.length) query = query.in("owner_id", filters.ownerIds);
   if (filters.stages.length) query = query.in("lifecycle_stage", filters.stages);
   if (filters.sources.length) query = query.in("source", filters.sources);
+  if (filters.campaigns.length) query = query.in("campaign", filters.campaigns);
   if (filters.dateFrom) query = query.gte("created_at", filters.dateFrom);
   if (filters.dateTo) query = query.lte("created_at", `${filters.dateTo}T23:59:59`);
   if (contactIdScope !== null) query = query.in("id", contactIdScope);

@@ -35,6 +35,7 @@ export function ContactsList({
   allTags,
   owners,
   availableSources,
+  availableCampaigns,
   availableSequences,
   savedViews,
   currentUserId,
@@ -46,6 +47,7 @@ export function ContactsList({
   allTags: Tag[];
   owners: { id: string; full_name: string | null; email: string }[];
   availableSources: string[];
+  availableCampaigns: string[];
   availableSequences: { id: string; name: string }[];
   savedViews: SavedView[];
   currentUserId: string;
@@ -81,6 +83,7 @@ export function ContactsList({
         allTags={allTags}
         owners={owners}
         availableSources={availableSources}
+        availableCampaigns={availableCampaigns}
         savedViews={savedViews}
         currentUserId={currentUserId}
         columnVisibility={columnVisibility}

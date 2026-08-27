@@ -18,6 +18,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
     savedViews,
     availableSequences,
     { data: sourceRows },
+    { data: campaignRows },
     {
       data: { user },
     },
@@ -28,10 +29,12 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
     listSavedViews(),
     listSequencesForPicker(),
     supabase.from("contacts").select("source").not("source", "is", null),
+    supabase.from("contacts").select("campaign").not("campaign", "is", null),
     supabase.auth.getUser(),
   ]);
 
   const availableSources = [...new Set((sourceRows ?? []).map((r) => r.source).filter((s): s is string => Boolean(s)))].sort();
+  const availableCampaigns = [...new Set((campaignRows ?? []).map((r) => r.campaign).filter((c): c is string => Boolean(c)))].sort();
 
   const contactRows: ContactRow[] = rows.map((contact) => ({
     ...contact,
@@ -52,6 +55,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
         allTags={allTags ?? []}
         owners={owners}
         availableSources={availableSources}
+        availableCampaigns={availableCampaigns}
         availableSequences={availableSequences}
         savedViews={savedViews}
         currentUserId={user?.id ?? ""}
