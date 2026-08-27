@@ -437,6 +437,57 @@ export type Database = {
           },
         ]
       }
+      deal_line_items: {
+        Row: {
+          created_at: string
+          deal_id: string
+          id: string
+          name: string
+          organization_id: string
+          position: number
+          quantity: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          id?: string
+          name: string
+          organization_id?: string
+          position?: number
+          quantity?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          position?: number
+          quantity?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_line_items_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_line_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deals: {
         Row: {
           closed_at: string | null
@@ -446,6 +497,7 @@ export type Database = {
           currency: string
           expected_close_date: string | null
           id: string
+          lost_reason: string | null
           organization_id: string
           owner_id: string | null
           pipeline_id: string
@@ -454,6 +506,7 @@ export type Database = {
           title: string
           updated_at: string
           value: number
+          won_reason: string | null
         }
         Insert: {
           closed_at?: string | null
@@ -463,6 +516,7 @@ export type Database = {
           currency?: string
           expected_close_date?: string | null
           id?: string
+          lost_reason?: string | null
           organization_id?: string
           owner_id?: string | null
           pipeline_id: string
@@ -471,6 +525,7 @@ export type Database = {
           title: string
           updated_at?: string
           value?: number
+          won_reason?: string | null
         }
         Update: {
           closed_at?: string | null
@@ -480,6 +535,7 @@ export type Database = {
           currency?: string
           expected_close_date?: string | null
           id?: string
+          lost_reason?: string | null
           organization_id?: string
           owner_id?: string | null
           pipeline_id?: string
@@ -488,6 +544,7 @@ export type Database = {
           title?: string
           updated_at?: string
           value?: number
+          won_reason?: string | null
         }
         Relationships: [
           {
@@ -1162,6 +1219,7 @@ export type Database = {
       }
       stages: {
         Row: {
+          color: string
           created_at: string
           id: string
           is_lost: boolean
@@ -1174,6 +1232,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          color?: string
           created_at?: string
           id?: string
           is_lost?: boolean
@@ -1186,6 +1245,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          color?: string
           created_at?: string
           id?: string
           is_lost?: boolean

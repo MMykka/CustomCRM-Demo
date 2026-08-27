@@ -41,6 +41,10 @@ export type ContactFile = Tables<"files">;
 export type SavedView = Tables<"saved_views">;
 export type Message = Tables<"messages">;
 export type SequenceEnrollment = Tables<"sequence_enrollments">;
+export type DealLineItem = Tables<"deal_line_items">;
+
+export const DEAL_WON_REASONS = ["Competitive win", "Timing", "Budget approved", "Other"] as const;
+export const DEAL_LOST_REASONS = ["Price", "Timing", "No budget", "Chose competitor", "No response", "Other"] as const;
 
 export const LIFECYCLE_STAGE_LABELS: Record<LifecycleStage, string> = {
   subscriber: "Subscriber",
