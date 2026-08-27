@@ -1,7 +1,10 @@
 import { ListTodo, Mail, Phone, RotateCcw, type LucideIcon } from "lucide-react";
 import type { Task, TaskType } from "@/lib/types";
 
-export type TaskRow = Task & { contact: { id: string; first_name: string | null; last_name: string | null; email: string | null } | null };
+export type TaskRow = Task & {
+  contact: { id: string; first_name: string | null; last_name: string | null; email: string | null } | null;
+  owner?: { id: string; full_name: string | null; email: string } | null;
+};
 
 export const TASK_TYPE_OPTIONS: { value: TaskType; label: string }[] = [
   { value: "task", label: "General" },

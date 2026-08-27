@@ -28,12 +28,14 @@ export function TaskChecklist({
   contactId,
   dealId,
   showContact = false,
+  showAssignee = false,
   allowAdd = Boolean(contactId || dealId),
 }: {
   tasks: TaskRow[];
   contactId?: string;
   dealId?: string;
   showContact?: boolean;
+  showAssignee?: boolean;
   allowAdd?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
@@ -95,6 +97,7 @@ export function TaskChecklist({
                         {contactDisplayName(task.contact)}
                       </Link>
                     ) : null}
+                    {showAssignee && task.owner ? <span>{task.owner.full_name ?? task.owner.email}</span> : null}
                   </div>
                 </div>
                 <Badge variant={PRIORITY_VARIANT[task.priority as TaskPriority]} className="capitalize">
