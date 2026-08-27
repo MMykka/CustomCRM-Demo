@@ -71,6 +71,15 @@ export function initialsFor(name: string) {
   return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
 }
 
+// Deterministic blue/yellow accent per person (keyed by a stable id, not
+// name, so it doesn't change if someone's renamed) -- gives avatar-heavy
+// views like contact lists, the activity feed, and leaderboards some color
+// instead of every initials badge being the same flat gray.
+export function avatarAccentClasses(seed: string): string {
+  const hash = [...seed].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+  return hash % 2 === 0 ? "bg-brand-blue text-brand-blue-foreground" : "bg-brand-yellow text-brand-yellow-foreground";
+}
+
 export function formatCurrency(value: number, currency: string) {
   try {
     return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);

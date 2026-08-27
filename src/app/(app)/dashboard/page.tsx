@@ -79,8 +79,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile label="Contacts" value={String(contactCount ?? 0)} icon={Users} />
-        <StatTile label="Companies" value={String(companyCount ?? 0)} icon={Building2} />
+        <StatTile label="Contacts" value={String(contactCount ?? 0)} icon={Users} accent="blue" />
+        <StatTile label="Companies" value={String(companyCount ?? 0)} icon={Building2} accent="yellow" />
         <StatTile
           label="Pipeline value"
           value={formatCurrency(openDealsTotal, currency)}
@@ -94,7 +94,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatTile label="New leads today" value={String(cardMetrics.newLeadsToday)} icon={UserPlus} accent="blue" href={newLeadsHref} />
         <StatTile label="Replies waiting" value={String(cardMetrics.repliesWaiting)} icon={MessageCircleReply} accent="yellow" />
-        <StatTile label="Calls booked this week" value={String(cardMetrics.callsBookedThisWeek)} icon={PhoneCall} />
+        <StatTile label="Calls booked this week" value={String(cardMetrics.callsBookedThisWeek)} icon={PhoneCall} accent="yellow" />
         <StatTile
           label="Deals won this month"
           value={formatCurrency(cardMetrics.dealsWonThisMonth.value, cardMetrics.dealsWonThisMonth.currency)}

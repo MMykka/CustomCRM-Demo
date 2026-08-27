@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { formatCurrency, initialsFor } from "@/lib/types";
+import { avatarAccentClasses, formatCurrency, initialsFor } from "@/lib/types";
 import type { RepPerformanceRow } from "@/lib/reports-rep-performance";
 
 export function RepPerformanceTable({ rows }: { rows: RepPerformanceRow[] }) {
@@ -26,7 +26,7 @@ export function RepPerformanceTable({ rows }: { rows: RepPerformanceRow[] }) {
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Avatar className="size-6 shrink-0">
-                    <AvatarFallback className="text-[10px]">{initialsFor(row.name)}</AvatarFallback>
+                    <AvatarFallback className={`text-[10px] ${avatarAccentClasses(row.id)}`}>{initialsFor(row.name)}</AvatarFallback>
                   </Avatar>
                   {row.name}
                 </div>

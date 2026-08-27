@@ -6,7 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { contactDisplayName, formatCurrency, initialsFor } from "@/lib/types";
+import { avatarAccentClasses, contactDisplayName, formatCurrency, initialsFor } from "@/lib/types";
 import type { DealRow } from "./deals-table";
 
 export const DEAL_COLUMN_OPTIONS: { id: string; label: string }[] = [
@@ -79,7 +79,9 @@ export const dealColumns: ColumnDef<DealRow>[] = [
       row.original.contact ? (
         <Link href={`/contacts/${row.original.contact.id}`} className="flex items-center gap-2 hover:underline">
           <Avatar className="size-6">
-            <AvatarFallback className="text-[10px]">{initialsFor(contactDisplayName(row.original.contact))}</AvatarFallback>
+            <AvatarFallback className={`text-[10px] ${avatarAccentClasses(row.original.contact.id)}`}>
+              {initialsFor(contactDisplayName(row.original.contact))}
+            </AvatarFallback>
           </Avatar>
           {contactDisplayName(row.original.contact)}
         </Link>

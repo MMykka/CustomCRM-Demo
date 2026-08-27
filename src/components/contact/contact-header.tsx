@@ -11,7 +11,7 @@ import { LogActivityDialog } from "@/components/contact/log-activity-dialog";
 import { LogMessageDialog } from "@/components/contact/log-message-dialog";
 import { QuickTaskDialog } from "@/components/contact/quick-task-dialog";
 import { EditContactDialog } from "@/components/contact/edit-contact-dialog";
-import { contactDisplayName, initialsFor, LIFECYCLE_STAGE_LABELS, type Contact, type LifecycleStage, type Tag } from "@/lib/types";
+import { avatarAccentClasses, contactDisplayName, initialsFor, LIFECYCLE_STAGE_LABELS, type Contact, type LifecycleStage, type Tag } from "@/lib/types";
 
 type HeaderContact = Contact & {
   company: { id: string; name: string } | null;
@@ -31,7 +31,7 @@ export function ContactHeader({ contact, allTags, activeTags }: { contact: Heade
     <div className="flex flex-col gap-3 rounded-xl border p-4">
       <div className="flex items-start gap-4">
         <Avatar className="size-14">
-          <AvatarFallback className="text-lg">{initialsFor(name)}</AvatarFallback>
+          <AvatarFallback className={`text-lg ${avatarAccentClasses(contact.id)}`}>{initialsFor(name)}</AvatarFallback>
         </Avatar>
         <div className="flex flex-1 flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-2">

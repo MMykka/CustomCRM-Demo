@@ -11,7 +11,7 @@ import { OrgSwitcher } from "@/components/layout/org-switcher";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useQuickActions } from "@/components/quick-actions/quick-actions-provider";
-import { initialsFor, type Notification } from "@/lib/types";
+import { avatarAccentClasses, initialsFor, type Notification } from "@/lib/types";
 import { NAV_ITEMS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -100,7 +100,7 @@ export function AppSidebar({
 
       <div className="flex items-center gap-2 border-t p-3">
         <Avatar className="size-8">
-          <AvatarFallback className="text-xs">{initialsFor(userName)}</AvatarFallback>
+          <AvatarFallback className={`text-xs ${avatarAccentClasses(userId)}`}>{initialsFor(userName)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{userName}</p>

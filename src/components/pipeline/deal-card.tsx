@@ -5,7 +5,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { contactDisplayName, formatCurrency, initialsFor } from "@/lib/types";
+import { avatarAccentClasses, contactDisplayName, formatCurrency, initialsFor } from "@/lib/types";
 import { isDealStale } from "@/lib/pipeline-filters";
 import type { DealWithRelations } from "./kanban-board";
 
@@ -49,7 +49,7 @@ export function DealCard({ deal, meta, isOverlay = false }: { deal: DealWithRela
           <span className="text-sm font-semibold">{formatCurrency(deal.value, deal.currency)}</span>
           {ownerName ? (
             <Avatar className="size-6" title={ownerName}>
-              <AvatarFallback className="text-[10px]">{initialsFor(ownerName)}</AvatarFallback>
+              <AvatarFallback className={`text-[10px] ${avatarAccentClasses(deal.owner!.id)}`}>{initialsFor(ownerName)}</AvatarFallback>
             </Avatar>
           ) : null}
         </div>

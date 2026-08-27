@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TagBadge } from "@/components/tag-badge";
-import { contactDisplayName, initialsFor, LIFECYCLE_STAGE_LABELS, type LifecycleStage } from "@/lib/types";
+import { avatarAccentClasses, contactDisplayName, initialsFor, LIFECYCLE_STAGE_LABELS, type LifecycleStage } from "@/lib/types";
 import type { ContactRow } from "./contacts-table";
 
 export const CONTACT_COLUMN_OPTIONS: { id: string; label: string }[] = [
@@ -48,7 +48,7 @@ export const contactColumns: ColumnDef<ContactRow>[] = [
       return (
         <Link href={`/contacts/${row.original.id}`} className="flex items-center gap-2 font-medium hover:underline">
           <Avatar className="size-7">
-            <AvatarFallback className="text-xs">{initialsFor(name)}</AvatarFallback>
+            <AvatarFallback className={`text-xs ${avatarAccentClasses(row.original.id)}`}>{initialsFor(name)}</AvatarFallback>
           </Avatar>
           {name}
         </Link>

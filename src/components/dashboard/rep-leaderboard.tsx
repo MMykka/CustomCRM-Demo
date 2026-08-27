@@ -1,4 +1,4 @@
-import { initialsFor } from "@/lib/types";
+import { avatarAccentClasses, initialsFor } from "@/lib/types";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import type { RepLeaderboardRow } from "@/lib/dashboard-leaderboard";
 
@@ -21,7 +21,7 @@ export function RepLeaderboard({ rows }: { rows: RepLeaderboardRow[] }) {
           <span className="text-xs text-muted-foreground">{index + 1}</span>
           <span className="flex min-w-0 items-center gap-2">
             <Avatar className="size-6 shrink-0">
-              <AvatarFallback className="text-[10px]">{initialsFor(row.name)}</AvatarFallback>
+              <AvatarFallback className={`text-[10px] ${avatarAccentClasses(row.id)}`}>{initialsFor(row.name)}</AvatarFallback>
             </Avatar>
             <span className="truncate">{row.name}</span>
           </span>
