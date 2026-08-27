@@ -84,11 +84,12 @@ export function KanbanBoard({
 
           const updated = payload.new as Deal;
 
-          if (updated.status !== "open") {
-            setDeals((current) => current.filter((deal) => deal.id !== updated.id));
-            return;
-          }
-
+          // Deals only leave the board entirely when they're closed AND old
+          // enough to fall outside the server query's recent-closed window
+          // (see pipeline/page.tsx) -- a realtime update alone can't know
+          // that cutoff, so a deal freshly marked won/lost is updated in
+          // place like any other field change instead of being removed;
+          // it'll simply drop off on the next full page load once it ages out.
           setDeals((current) => {
             const exists = current.some((deal) => deal.id === updated.id);
             if (exists) {

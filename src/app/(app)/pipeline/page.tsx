@@ -108,11 +108,19 @@ export default async function PipelinePage({ searchParams }: { searchParams: Pro
 
   const { data: stages } = await supabase.from("stages").select("*").eq("pipeline_id", pipeline.id).order("position");
 
+  // The Won/Lost columns exist as drop targets even though a deal's status
+  // flips away from 'open' the instant it lands there -- without this, they
+  // stay permanently empty and a just-closed deal looks like it vanished.
+  // Recently-closed deals (last 30 days) still show in their column; older
+  // ones are reachable via the List view's Status filter instead of piling
+  // up here forever.
+  const recentClosedCutoff = new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
   let dealsQuery = supabase
     .from("deals")
     .select("*, contact:contacts(id, first_name, last_name, email), company:companies(id, name), owner:users(id, full_name, email)")
     .eq("pipeline_id", pipeline.id)
-    .eq("status", "open")
+    .or(`status.eq.open,and(status.in.(won,lost),closed_at.gte.${recentClosedCutoff})`)
     .order("created_at", { ascending: false });
 
   if (filters.ownerIds.length) dealsQuery = dealsQuery.in("owner_id", filters.ownerIds);
@@ -168,7 +176,7 @@ export default async function PipelinePage({ searchParams }: { searchParams: Pro
       <div className="flex items-start justify-between gap-4">
         <div>
           <PipelineSwitcher pipelines={pipelines} currentId={pipeline.id} />
-          <p className="text-sm text-muted-foreground">{dealRows.length} open deals</p>
+          <p className="text-sm text-muted-foreground">{dealRows.filter((d) => d.status === "open").length} open deals</p>
         </div>
         <div className="flex items-center gap-2">
           <ViewToggle view="kanban" />
