@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addTask } from "@/lib/actions/tasks";
-import { TASK_TYPE_OPTIONS } from "@/components/tasks/task-checklist";
-import type { TaskType } from "@/lib/types";
+import { TASK_TYPE_OPTIONS } from "@/components/tasks/task-shared";
+import { RecurrenceFields } from "@/components/tasks/recurrence-fields";
+import type { RecurrenceUnit, TaskType } from "@/lib/types";
 
 // Backs both the "Book" and "Add task" header quick actions. There's still
 // no telephony/booking integration in this app, so a due-dated task (now
@@ -33,6 +34,9 @@ export function QuickTaskDialog({
   const [taskTitle, setTaskTitle] = useState(defaultTitle);
   const [dueAt, setDueAt] = useState("");
   const [type, setType] = useState<TaskType>("task");
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [recurrenceUnit, setRecurrenceUnit] = useState<RecurrenceUnit>("week");
   const router = useRouter();
 
   function handleOpenChange(next: boolean) {
@@ -40,6 +44,9 @@ export function QuickTaskDialog({
       setTaskTitle(defaultTitle);
       setDueAt("");
       setType("task");
+      setRepeatEnabled(false);
+      setRecurrenceInterval(1);
+      setRecurrenceUnit("week");
     }
     onOpenChange(next);
   }
@@ -47,7 +54,14 @@ export function QuickTaskDialog({
   function handleSubmit() {
     if (!taskTitle.trim()) return;
     startTransition(async () => {
-      await addTask({ title: taskTitle, dueAt: dueAt || null, contactId, type });
+      await addTask({
+        title: taskTitle,
+        dueAt: dueAt || null,
+        contactId,
+        type,
+        recurrenceInterval: repeatEnabled ? recurrenceInterval : null,
+        recurrenceUnit: repeatEnabled ? recurrenceUnit : null,
+      });
       onOpenChange(false);
       router.refresh();
     });
@@ -85,6 +99,14 @@ export function QuickTaskDialog({
               </Select>
             </div>
           </div>
+          <RecurrenceFields
+            enabled={repeatEnabled}
+            onEnabledChange={setRepeatEnabled}
+            interval={recurrenceInterval}
+            onIntervalChange={setRecurrenceInterval}
+            unit={recurrenceUnit}
+            onUnitChange={setRecurrenceUnit}
+          />
         </div>
         <DialogFooter>
           <Button onClick={handleSubmit} disabled={isPending || !taskTitle.trim()}>

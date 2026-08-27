@@ -9,14 +9,25 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addTask } from "@/lib/actions/tasks";
-import { TASK_TYPE_OPTIONS } from "@/components/tasks/task-checklist";
-import type { TaskType } from "@/lib/types";
+import { TASK_TYPE_OPTIONS } from "@/components/tasks/task-shared";
+import { RecurrenceFields } from "@/components/tasks/recurrence-fields";
+import type { RecurrenceUnit, TaskType } from "@/lib/types";
 
 export function NewTaskDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [isPending, startTransition] = useTransition();
   const [type, setType] = useState<TaskType>("task");
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [unit, setUnit] = useState<RecurrenceUnit>("week");
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+
+  function reset() {
+    setType("task");
+    setRepeatEnabled(false);
+    setRecurrenceInterval(1);
+    setUnit("week");
+  }
 
   function handleSubmit(formData: FormData) {
     const title = String(formData.get("title") ?? "");
@@ -28,9 +39,15 @@ export function NewTaskDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     }
 
     startTransition(async () => {
-      await addTask({ title, dueAt: dueAt || null, type });
+      await addTask({
+        title,
+        dueAt: dueAt || null,
+        type,
+        recurrenceInterval: repeatEnabled ? recurrenceInterval : null,
+        recurrenceUnit: repeatEnabled ? unit : null,
+      });
       formRef.current?.reset();
-      setType("task");
+      reset();
       onOpenChange(false);
       router.push("/tasks");
       router.refresh();
@@ -69,6 +86,14 @@ export function NewTaskDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               </Select>
             </div>
           </div>
+          <RecurrenceFields
+            enabled={repeatEnabled}
+            onEnabledChange={setRepeatEnabled}
+            interval={recurrenceInterval}
+            onIntervalChange={setRecurrenceInterval}
+            unit={unit}
+            onUnitChange={setUnit}
+          />
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
               {isPending ? "Creating..." : "Create task"}

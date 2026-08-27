@@ -3,38 +3,25 @@
 import { useState, useRef, useTransition } from "react";
 import Link from "next/link";
 import { addDays, addHours, addWeeks, format, isPast, setHours, setMinutes, startOfDay } from "date-fns";
-import { AlarmClockOff, Clock, ListTodo, Mail, Phone, RotateCcw, type LucideIcon } from "lucide-react";
+import { AlarmClockOff, Clock, Pencil, Repeat } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toggleTaskComplete, addTask, snoozeTask, unsnoozeTask } from "@/lib/actions/tasks";
-import { contactDisplayName, type Task, type TaskPriority, type TaskType } from "@/lib/types";
+import { contactDisplayName, type TaskPriority, type TaskType } from "@/lib/types";
+import { EditTaskDialog } from "@/components/tasks/edit-task-dialog";
+import { TASK_TYPE_ICON, TASK_TYPE_LABEL, TASK_TYPE_OPTIONS, type TaskRow } from "@/components/tasks/task-shared";
 
-export type TaskRow = Task & { contact: { id: string; first_name: string | null; last_name: string | null; email: string | null } | null };
+export type { TaskRow };
+export { TASK_TYPE_OPTIONS };
 
 const PRIORITY_VARIANT: Record<TaskPriority, "default" | "secondary" | "destructive"> = {
   low: "secondary",
   normal: "default",
   high: "destructive",
 };
-
-export const TASK_TYPE_OPTIONS: { value: TaskType; label: string }[] = [
-  { value: "task", label: "General" },
-  { value: "call", label: "Call" },
-  { value: "email", label: "Email" },
-  { value: "follow_up", label: "Follow-up" },
-];
-
-export const TASK_TYPE_ICON: Record<TaskType, LucideIcon> = {
-  task: ListTodo,
-  call: Phone,
-  email: Mail,
-  follow_up: RotateCcw,
-};
-
-const TASK_TYPE_LABEL: Record<TaskType, string> = Object.fromEntries(TASK_TYPE_OPTIONS.map((o) => [o.value, o.label])) as Record<TaskType, string>;
 
 export function TaskChecklist({
   tasks,
@@ -51,6 +38,7 @@ export function TaskChecklist({
 }) {
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  const [editingTask, setEditingTask] = useState<TaskRow | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -97,6 +85,11 @@ export function TaskChecklist({
                     {task.due_at ? (
                       <span className={overdue ? "font-medium text-destructive" : ""}>Due {format(new Date(task.due_at), "MMM d")}</span>
                     ) : null}
+                    {task.recurrence_interval && task.recurrence_unit ? (
+                      <span title={`Repeats every ${task.recurrence_interval} ${task.recurrence_unit}(s)`}>
+                        <Repeat className="size-3 text-muted-foreground" />
+                      </span>
+                    ) : null}
                     {showContact && task.contact ? (
                       <Link href={`/contacts/${task.contact.id}`} className="hover:underline">
                         {contactDisplayName(task.contact)}
@@ -108,11 +101,16 @@ export function TaskChecklist({
                   {task.priority}
                 </Badge>
                 {task.status === "open" ? <SnoozeControl taskId={task.id} snoozedUntil={task.snoozed_until} /> : null}
+                <Button variant="ghost" size="icon-sm" onClick={() => setEditingTask(task)} title="Edit task">
+                  <Pencil className="size-3.5" />
+                </Button>
               </li>
             );
           })
         )}
       </ul>
+
+      {editingTask ? <EditTaskDialog task={editingTask} open={Boolean(editingTask)} onOpenChange={(open) => !open && setEditingTask(null)} /> : null}
     </div>
   );
 }
