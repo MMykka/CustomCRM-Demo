@@ -10,20 +10,31 @@ import { getRepPerformanceAllTime } from "@/lib/reports-rep-performance";
 import { RepPerformanceTable } from "@/components/reports/rep-performance-table";
 import { getContactFunnel } from "@/lib/reports-funnel";
 import { FunnelChart } from "@/components/reports/funnel-chart";
+import { getStageMetrics } from "@/lib/reports-stage-metrics";
+import { StageMetricsTable } from "@/components/reports/stage-metrics-table";
+import { listPipelinesForPicker } from "@/lib/actions/pipelines";
+import { PipelinePicker } from "@/components/pipeline/pipeline-picker";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/types";
 
-export default async function ReportsPage() {
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requireAppUser();
   const supabase = await createClient();
-  const [forecast, leadVolume, wonRevenue, repPerformance, funnelBySource, funnelByCampaign] = await Promise.all([
+  const resolvedSearchParams = await searchParams;
+
+  const [forecast, leadVolume, wonRevenue, repPerformance, funnelBySource, funnelByCampaign, pipelines] = await Promise.all([
     getForecastByMonth(supabase),
     getLeadVolumeByMonth(supabase),
     getWonRevenueByMonth(supabase),
     getRepPerformanceAllTime(supabase),
     getContactFunnel(supabase, "source"),
     getContactFunnel(supabase, "campaign"),
+    listPipelinesForPicker(),
   ]);
+
+  const requestedPipelineId = Array.isArray(resolvedSearchParams.pipeline) ? resolvedSearchParams.pipeline[0] : resolvedSearchParams.pipeline;
+  const selectedPipeline = pipelines.find((p) => p.id === requestedPipelineId) ?? pipelines[0];
+  const stageMetrics = selectedPipeline ? await getStageMetrics(supabase, selectedPipeline.id) : null;
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -83,6 +94,26 @@ export default async function ReportsPage() {
           )}
         </CardContent>
       </Card>
+
+      {stageMetrics && selectedPipeline ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Stage conversion & avg days in stage — {stageMetrics.pipelineName}</CardTitle>
+            <CardAction>
+              <div className="flex items-center gap-2">
+                <PipelinePicker pipelines={pipelines} currentId={selectedPipeline.id} basePath="/reports" />
+                <ReportExportButton
+                  filename={`stage-metrics-export-${new Date().toISOString().slice(0, 10)}.csv`}
+                  rows={stageMetrics.stages}
+                />
+              </div>
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <StageMetricsTable result={stageMetrics} />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
