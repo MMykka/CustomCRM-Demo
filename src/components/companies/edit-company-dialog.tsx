@@ -97,7 +97,11 @@ export function EditCompanyDialog({
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Owner</Label>
-            <Select value={ownerId} onValueChange={(value) => setOwnerId(value ?? "")}>
+            <Select
+              value={ownerId}
+              onValueChange={(value) => setOwnerId(value ?? "")}
+              items={members.map((m) => ({ value: m.id, label: m.full_name ?? m.email }))}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Unassigned" />
               </SelectTrigger>

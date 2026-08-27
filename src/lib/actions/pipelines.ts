@@ -17,6 +17,16 @@ export async function listPipelinesWithStages() {
   return (data ?? []).map((p) => ({ ...p, stages: (p.stages ?? []).slice().sort((a, b) => a.position - b.position) }));
 }
 
+export async function listPipelinesForPicker() {
+  await requireAppUser();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.from("pipelines").select("id, name, is_default").order("is_default", { ascending: false }).order("position");
+  if (error) throw error;
+
+  return data ?? [];
+}
+
 export async function createPipeline(input: { name: string }) {
   if (!input.name.trim()) return null;
 

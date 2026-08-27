@@ -116,7 +116,11 @@ export function EditContactDialog({
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Company</Label>
-            <Select value={companyId} onValueChange={(value) => setCompanyId(value ?? "")}>
+            <Select
+              value={companyId}
+              onValueChange={(value) => setCompanyId(value ?? "")}
+              items={companies.map((c) => ({ value: c.id, label: c.name }))}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="No company" />
               </SelectTrigger>
@@ -131,7 +135,11 @@ export function EditContactDialog({
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Owner</Label>
-            <Select value={ownerId} onValueChange={(value) => setOwnerId(value ?? "")}>
+            <Select
+              value={ownerId}
+              onValueChange={(value) => setOwnerId(value ?? "")}
+              items={members.map((m) => ({ value: m.id, label: m.full_name ?? m.email }))}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Unassigned" />
               </SelectTrigger>
@@ -147,7 +155,11 @@ export function EditContactDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Lifecycle stage</Label>
-              <Select value={lifecycleStage} onValueChange={(value) => setLifecycleStage((value as LifecycleStage) ?? "lead")}>
+              <Select
+                value={lifecycleStage}
+                onValueChange={(value) => setLifecycleStage((value as LifecycleStage) ?? "lead")}
+                items={LIFECYCLE_STAGES.map(([value, label]) => ({ value, label }))}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>

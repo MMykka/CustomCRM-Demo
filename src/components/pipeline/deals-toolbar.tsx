@@ -163,7 +163,7 @@ export function DealsToolbar({
           Stale
         </Button>
 
-        <Select value={status} onValueChange={(value) => updateParams({ status: value === "open" ? null : value })}>
+        <Select value={status} onValueChange={(value) => updateParams({ status: value === "open" ? null : value })} items={STATUS_OPTIONS}>
           <SelectTrigger size="sm">
             <SelectValue />
           </SelectTrigger>
@@ -191,7 +191,7 @@ export function DealsToolbar({
         ) : null}
 
         <div className="ml-auto flex items-center gap-2">
-          <Select value={sort} onValueChange={(value) => updateParams({ sort: value === "created_desc" ? null : value })}>
+          <Select value={sort} onValueChange={(value) => updateParams({ sort: value === "created_desc" ? null : value })} items={SORT_OPTIONS}>
             <SelectTrigger size="sm">
               <SelectValue />
             </SelectTrigger>

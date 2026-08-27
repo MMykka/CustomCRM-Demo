@@ -71,7 +71,7 @@ export function LogActivityDialog({
           {kind === "call" ? (
             <div className="flex flex-col gap-1.5">
               <Label>Outcome</Label>
-              <Select value={outcome} onValueChange={(value) => setOutcome((value as CallOutcome) ?? "connected")}>
+              <Select value={outcome} onValueChange={(value) => setOutcome((value as CallOutcome) ?? "connected")} items={CALL_OUTCOMES}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>

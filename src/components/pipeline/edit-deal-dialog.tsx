@@ -94,7 +94,11 @@ export function EditDealDialog({ deal, open, onOpenChange }: { deal: EditableDea
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Contact</Label>
-            <Select value={contactId} onValueChange={(value) => setContactId(value ?? "")}>
+            <Select
+              value={contactId}
+              onValueChange={(value) => setContactId(value ?? "")}
+              items={contacts.map((contact) => ({ value: contact.id, label: contact.label }))}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="No contact" />
               </SelectTrigger>
@@ -109,7 +113,11 @@ export function EditDealDialog({ deal, open, onOpenChange }: { deal: EditableDea
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Company</Label>
-            <Select value={companyId} onValueChange={(value) => setCompanyId(value ?? "")}>
+            <Select
+              value={companyId}
+              onValueChange={(value) => setCompanyId(value ?? "")}
+              items={companies.map((c) => ({ value: c.id, label: c.name }))}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="No company" />
               </SelectTrigger>
@@ -124,7 +132,11 @@ export function EditDealDialog({ deal, open, onOpenChange }: { deal: EditableDea
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Owner</Label>
-            <Select value={ownerId} onValueChange={(value) => setOwnerId(value ?? "")}>
+            <Select
+              value={ownerId}
+              onValueChange={(value) => setOwnerId(value ?? "")}
+              items={members.map((m) => ({ value: m.id, label: m.full_name ?? m.email }))}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Unassigned" />
               </SelectTrigger>

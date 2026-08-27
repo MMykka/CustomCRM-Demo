@@ -46,7 +46,12 @@ export function ConsentPanel({
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
         <Label>Consent status</Label>
-        <Select value={status} onValueChange={(value) => save({ consentStatus: (value as ConsentStatus) ?? "unknown" })} disabled={isPending}>
+        <Select
+          value={status}
+          onValueChange={(value) => save({ consentStatus: (value as ConsentStatus) ?? "unknown" })}
+          disabled={isPending}
+          items={(Object.entries(CONSENT_LABELS) as [ConsentStatus, string][]).map(([value, label]) => ({ value, label }))}
+        >
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>

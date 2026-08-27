@@ -160,7 +160,7 @@ export function ContactsToolbar({
         ) : null}
 
         <div className="ml-auto flex items-center gap-2">
-          <Select value={sort} onValueChange={(value) => updateParams({ sort: value === "created_desc" ? null : value })}>
+          <Select value={sort} onValueChange={(value) => updateParams({ sort: value === "created_desc" ? null : value })} items={SORT_OPTIONS}>
             <SelectTrigger size="sm">
               <SelectValue />
             </SelectTrigger>

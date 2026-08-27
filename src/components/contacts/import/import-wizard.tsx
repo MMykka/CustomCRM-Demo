@@ -172,6 +172,7 @@ export function ImportWizard() {
                 <Select
                   value={mapping[header] ?? "skip"}
                   onValueChange={(value) => setMapping((m) => ({ ...m, [header]: (value as TargetField) ?? "skip" }))}
+                  items={FIELD_OPTIONS}
                 >
                   <SelectTrigger className="w-56">
                     <SelectValue />
@@ -205,7 +206,15 @@ export function ImportWizard() {
             {duplicateCount > 0 ? (
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">For duplicates:</span>
-                <Select value={duplicateStrategy} onValueChange={(v) => setDuplicateStrategy((v as DuplicateStrategy) ?? "skip")}>
+                <Select
+                  value={duplicateStrategy}
+                  onValueChange={(v) => setDuplicateStrategy((v as DuplicateStrategy) ?? "skip")}
+                  items={[
+                    { value: "skip", label: "Skip" },
+                    { value: "update", label: "Update existing" },
+                    { value: "create", label: "Import as new anyway" },
+                  ]}
+                >
                   <SelectTrigger size="sm">
                     <SelectValue />
                   </SelectTrigger>

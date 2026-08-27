@@ -92,7 +92,11 @@ export function SequenceEnrollmentsPanel({
 
       {availableSequences.length > 0 ? (
         <div className="flex gap-2">
-          <Select value={sequenceId} onValueChange={(value) => setSequenceId(value ?? "")}>
+          <Select
+            value={sequenceId}
+            onValueChange={(value) => setSequenceId(value ?? "")}
+            items={availableSequences.map((seq) => ({ value: seq.id, label: seq.name }))}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Enroll in a sequence..." />
             </SelectTrigger>

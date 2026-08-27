@@ -7,26 +7,30 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type DealUpdate = Database["public"]["Tables"]["deals"]["Update"];
 
-export async function addDeal(input: { title: string; value: number; contactId: string | null }) {
+export async function addDeal(input: { title: string; value: number; contactId: string | null; pipelineId?: string | null }) {
   if (!input.title.trim()) return null;
 
   const appUser = await requireAppUser();
   const supabase = await createClient();
 
-  const { data: pipeline, error: pipelineError } = await supabase
-    .from("pipelines")
-    .select("id")
-    .eq("organization_id", appUser.organization_id!)
-    .order("is_default", { ascending: false })
-    .order("position")
-    .limit(1)
-    .single();
-  if (pipelineError) throw pipelineError;
+  let pipelineId = input.pipelineId;
+  if (!pipelineId) {
+    const { data: pipeline, error: pipelineError } = await supabase
+      .from("pipelines")
+      .select("id")
+      .eq("organization_id", appUser.organization_id!)
+      .order("is_default", { ascending: false })
+      .order("position")
+      .limit(1)
+      .single();
+    if (pipelineError) throw pipelineError;
+    pipelineId = pipeline.id;
+  }
 
   const { data: stage, error: stageError } = await supabase
     .from("stages")
     .select("id")
-    .eq("pipeline_id", pipeline.id)
+    .eq("pipeline_id", pipelineId)
     .order("position")
     .limit(1)
     .single();
@@ -36,7 +40,7 @@ export async function addDeal(input: { title: string; value: number; contactId: 
     .from("deals")
     .insert({
       organization_id: appUser.organization_id!,
-      pipeline_id: pipeline.id,
+      pipeline_id: pipelineId,
       stage_id: stage.id,
       title: input.title.trim(),
       value: input.value || 0,

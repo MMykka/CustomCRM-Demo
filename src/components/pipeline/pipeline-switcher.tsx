@@ -21,7 +21,11 @@ export function PipelineSwitcher({ pipelines, currentId }: { pipelines: Pipeline
   }
 
   return (
-    <Select value={currentId} onValueChange={handleChange}>
+    <Select
+      value={currentId}
+      onValueChange={handleChange}
+      items={pipelines.map((p) => ({ value: p.id, label: `${p.name}${p.is_default ? " (default)" : ""}` }))}
+    >
       <SelectTrigger className="h-auto border-none bg-transparent px-0 text-2xl font-semibold tracking-tight shadow-none">
         <SelectValue />
       </SelectTrigger>
