@@ -21,11 +21,13 @@ const PRIORITY_VARIANT: Record<TaskPriority, "default" | "secondary" | "destruct
 export function TaskChecklist({
   tasks,
   contactId,
+  dealId,
   showContact = false,
-  allowAdd = Boolean(contactId),
+  allowAdd = Boolean(contactId || dealId),
 }: {
   tasks: TaskRow[];
   contactId?: string;
+  dealId?: string;
   showContact?: boolean;
   allowAdd?: boolean;
 }) {
@@ -41,7 +43,7 @@ export function TaskChecklist({
             const title = String(formData.get("title") ?? "");
             const dueAt = String(formData.get("dueAt") ?? "");
             startTransition(async () => {
-              await addTask({ title, dueAt: dueAt || null, contactId });
+              await addTask({ title, dueAt: dueAt || null, contactId, dealId });
               formRef.current?.reset();
             });
           }}

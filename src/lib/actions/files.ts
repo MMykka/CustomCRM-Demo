@@ -4,8 +4,16 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 
+export type FileEntity = { contactId?: string; dealId?: string };
+
+function pathForEntity(entity: FileEntity) {
+  if (entity.dealId) return `/pipeline/${entity.dealId}`;
+  if (entity.contactId) return `/contacts/${entity.contactId}`;
+  return null;
+}
+
 export async function recordFileUpload(
-  contactId: string,
+  entity: FileEntity,
   input: { storagePath: string; fileName: string; mimeType: string | null; sizeBytes: number },
 ) {
   const appUser = await requireAppUser();
@@ -13,7 +21,8 @@ export async function recordFileUpload(
 
   const { error } = await supabase.from("files").insert({
     organization_id: appUser.organization_id!,
-    contact_id: contactId,
+    contact_id: entity.contactId ?? null,
+    deal_id: entity.dealId ?? null,
     uploaded_by: appUser.id,
     storage_path: input.storagePath,
     file_name: input.fileName,
@@ -23,10 +32,11 @@ export async function recordFileUpload(
 
   if (error) throw error;
 
-  revalidatePath(`/contacts/${contactId}`);
+  const path = pathForEntity(entity);
+  if (path) revalidatePath(path);
 }
 
-export async function deleteFile(fileId: string, contactId: string, storagePath: string) {
+export async function deleteFile(fileId: string, entity: FileEntity, storagePath: string) {
   await requireAppUser();
   const supabase = await createClient();
 
@@ -36,7 +46,8 @@ export async function deleteFile(fileId: string, contactId: string, storagePath:
   const { error } = await supabase.from("files").delete().eq("id", fileId);
   if (error) throw error;
 
-  revalidatePath(`/contacts/${contactId}`);
+  const path = pathForEntity(entity);
+  if (path) revalidatePath(path);
 }
 
 export async function getSignedFileUrl(storagePath: string) {

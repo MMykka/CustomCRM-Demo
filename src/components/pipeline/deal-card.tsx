@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useDraggable } from "@dnd-kit/core";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,7 +31,17 @@ export function DealCard({ deal, meta, isOverlay = false }: { deal: DealWithRela
       }`}
     >
       <CardContent className="flex flex-col gap-1.5 px-3">
-        <p className="text-sm font-medium leading-tight">{deal.title}</p>
+        {isOverlay ? (
+          <p className="text-sm font-medium leading-tight">{deal.title}</p>
+        ) : (
+          <Link
+            href={`/pipeline/${deal.id}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="text-sm font-medium leading-tight hover:underline"
+          >
+            {deal.title}
+          </Link>
+        )}
         {deal.company ? <p className="text-xs text-muted-foreground">{deal.company.name}</p> : null}
         {deal.contact ? <p className="text-xs text-muted-foreground">{contactDisplayName(deal.contact)}</p> : null}
 

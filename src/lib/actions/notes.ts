@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 
+export type NoteEntity = { contactId?: string; dealId?: string };
+
 // Extracts @[Full Name](userId) mention tokens written by mention-textarea.tsx.
 function extractMentionedUserIds(body: string): string[] {
   const ids = new Set<string>();
@@ -13,7 +15,13 @@ function extractMentionedUserIds(body: string): string[] {
   return [...ids];
 }
 
-export async function addNote(contactId: string, body: string) {
+function pathForEntity(entity: NoteEntity) {
+  if (entity.dealId) return `/pipeline/${entity.dealId}`;
+  if (entity.contactId) return `/contacts/${entity.contactId}`;
+  return null;
+}
+
+export async function addNote(entity: NoteEntity, body: string) {
   if (!body.trim()) return;
 
   const appUser = await requireAppUser();
@@ -21,7 +29,8 @@ export async function addNote(contactId: string, body: string) {
 
   const { error } = await supabase.from("notes").insert({
     organization_id: appUser.organization_id!,
-    contact_id: contactId,
+    contact_id: entity.contactId ?? null,
+    deal_id: entity.dealId ?? null,
     author_id: appUser.id,
     body: body.trim(),
     mentioned_user_ids: extractMentionedUserIds(body),
@@ -29,10 +38,11 @@ export async function addNote(contactId: string, body: string) {
 
   if (error) throw error;
 
-  revalidatePath(`/contacts/${contactId}`);
+  const path = pathForEntity(entity);
+  if (path) revalidatePath(path);
 }
 
-export async function updateNote(noteId: string, contactId: string, body: string) {
+export async function updateNote(noteId: string, entity: NoteEntity, body: string) {
   if (!body.trim()) return;
 
   await requireAppUser();
@@ -45,10 +55,11 @@ export async function updateNote(noteId: string, contactId: string, body: string
 
   if (error) throw error;
 
-  revalidatePath(`/contacts/${contactId}`);
+  const path = pathForEntity(entity);
+  if (path) revalidatePath(path);
 }
 
-export async function togglePinNote(noteId: string, contactId: string, pinned: boolean) {
+export async function togglePinNote(noteId: string, entity: NoteEntity, pinned: boolean) {
   const appUser = await requireAppUser();
   const supabase = await createClient();
 
@@ -63,15 +74,17 @@ export async function togglePinNote(noteId: string, contactId: string, pinned: b
 
   if (error) throw error;
 
-  revalidatePath(`/contacts/${contactId}`);
+  const path = pathForEntity(entity);
+  if (path) revalidatePath(path);
 }
 
-export async function deleteNote(noteId: string, contactId: string) {
+export async function deleteNote(noteId: string, entity: NoteEntity) {
   await requireAppUser();
   const supabase = await createClient();
 
   const { error } = await supabase.from("notes").delete().eq("id", noteId);
   if (error) throw error;
 
-  revalidatePath(`/contacts/${contactId}`);
+  const path = pathForEntity(entity);
+  if (path) revalidatePath(path);
 }

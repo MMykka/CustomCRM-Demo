@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Download, Paperclip, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
-import { deleteFile, getSignedFileUrl, recordFileUpload } from "@/lib/actions/files";
+import { deleteFile, getSignedFileUrl, recordFileUpload, type FileEntity } from "@/lib/actions/files";
 import type { ContactFile } from "@/lib/types";
 
 export type FileWithUploader = ContactFile & { uploader: { full_name: string | null; email: string } | null };
@@ -21,21 +21,22 @@ function formatBytes(bytes: number | null) {
 // server action body-size limit for larger files); the server action only
 // records the metadata row + issues signed URLs, since the bucket is
 // private.
-export function FilesPanel({ contactId, organizationId, files }: { contactId: string; organizationId: string; files: FileWithUploader[] }) {
+export function FilesPanel({ entity, organizationId, files }: { entity: FileEntity; organizationId: string; files: FileWithUploader[] }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const entityId = entity.dealId ?? entity.contactId;
 
   async function uploadFiles(fileList: FileList | File[]) {
     setIsUploading(true);
     const supabase = createClient();
     try {
       for (const file of Array.from(fileList)) {
-        const path = `${organizationId}/${contactId}/${crypto.randomUUID()}-${file.name}`;
+        const path = `${organizationId}/${entityId}/${crypto.randomUUID()}-${file.name}`;
         const { error } = await supabase.storage.from("contact-files").upload(path, file);
         if (error) throw error;
-        await recordFileUpload(contactId, { storagePath: path, fileName: file.name, mimeType: file.type || null, sizeBytes: file.size });
+        await recordFileUpload(entity, { storagePath: path, fileName: file.name, mimeType: file.type || null, sizeBytes: file.size });
       }
     } finally {
       setIsUploading(false);
@@ -101,7 +102,7 @@ export function FilesPanel({ contactId, organizationId, files }: { contactId: st
                 variant="ghost"
                 size="icon-sm"
                 disabled={isPending}
-                onClick={() => startTransition(() => deleteFile(file.id, contactId, file.storage_path))}
+                onClick={() => startTransition(() => deleteFile(file.id, entity, file.storage_path))}
                 title="Delete"
               >
                 <Trash2 className="size-3.5" />

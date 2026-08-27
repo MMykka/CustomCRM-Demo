@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
+import type { Database } from "@/lib/supabase/database.types";
+
+type DealUpdate = Database["public"]["Tables"]["deals"]["Update"];
 
 export async function addDeal(input: { title: string; value: number; contactId: string | null }) {
   if (!input.title.trim()) return null;
@@ -47,4 +50,36 @@ export async function addDeal(input: { title: string; value: number; contactId: 
 
   revalidatePath("/pipeline");
   return data.id as string;
+}
+
+export async function updateDeal(
+  dealId: string,
+  input: {
+    title: string;
+    value: number;
+    contactId: string | null;
+    companyId: string | null;
+    ownerId: string | null;
+    expectedCloseDate: string | null;
+  },
+) {
+  if (!input.title.trim()) return;
+
+  await requireAppUser();
+  const supabase = await createClient();
+
+  const payload: DealUpdate = {
+    title: input.title.trim(),
+    value: input.value || 0,
+    contact_id: input.contactId,
+    company_id: input.companyId,
+    owner_id: input.ownerId,
+    expected_close_date: input.expectedCloseDate,
+  };
+
+  const { error } = await supabase.from("deals").update(payload).eq("id", dealId);
+  if (error) throw error;
+
+  revalidatePath("/pipeline");
+  revalidatePath(`/pipeline/${dealId}`);
 }

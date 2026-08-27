@@ -6,12 +6,12 @@ import { Pin, PinOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MentionTextarea, type MentionCandidate } from "@/components/contact/mention-textarea";
 import { renderMarkdownLite } from "@/lib/markdown-lite";
-import { addNote, deleteNote, togglePinNote } from "@/lib/actions/notes";
+import { addNote, deleteNote, togglePinNote, type NoteEntity } from "@/lib/actions/notes";
 import type { Note } from "@/lib/types";
 
 export type NoteWithAuthor = Note & { author: { full_name: string | null; email: string } | null };
 
-export function NotesPanel({ contactId, notes, members }: { contactId: string; notes: NoteWithAuthor[]; members: MentionCandidate[] }) {
+export function NotesPanel({ entity, notes, members }: { entity: NoteEntity; notes: NoteWithAuthor[]; members: MentionCandidate[] }) {
   const [draft, setDraft] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -21,7 +21,7 @@ export function NotesPanel({ contactId, notes, members }: { contactId: string; n
   function submit() {
     if (!draft.trim()) return;
     startTransition(async () => {
-      await addNote(contactId, draft);
+      await addNote(entity, draft);
       setDraft("");
     });
   }
@@ -41,7 +41,7 @@ export function NotesPanel({ contactId, notes, members }: { contactId: string; n
         <div className="flex flex-col gap-3">
           <p className="text-xs font-medium uppercase text-muted-foreground">Pinned</p>
           {pinned.map((note) => (
-            <NoteItem key={note.id} note={note} contactId={contactId} />
+            <NoteItem key={note.id} note={note} entity={entity} />
           ))}
         </div>
       ) : null}
@@ -50,14 +50,14 @@ export function NotesPanel({ contactId, notes, members }: { contactId: string; n
         {rest.length === 0 && pinned.length === 0 ? (
           <p className="text-sm text-muted-foreground">No notes yet.</p>
         ) : (
-          rest.map((note) => <NoteItem key={note.id} note={note} contactId={contactId} />)
+          rest.map((note) => <NoteItem key={note.id} note={note} entity={entity} />)
         )}
       </div>
     </div>
   );
 }
 
-function NoteItem({ note, contactId }: { note: NoteWithAuthor; contactId: string }) {
+function NoteItem({ note, entity }: { note: NoteWithAuthor; entity: NoteEntity }) {
   const [isPending, startTransition] = useTransition();
   const author = note.author?.full_name ?? note.author?.email ?? "Someone";
 
@@ -72,7 +72,7 @@ function NoteItem({ note, contactId }: { note: NoteWithAuthor; contactId: string
             variant="ghost"
             size="icon-sm"
             disabled={isPending}
-            onClick={() => startTransition(() => togglePinNote(note.id, contactId, !note.is_pinned))}
+            onClick={() => startTransition(() => togglePinNote(note.id, entity, !note.is_pinned))}
             title={note.is_pinned ? "Unpin" : "Pin"}
           >
             {note.is_pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
@@ -81,7 +81,7 @@ function NoteItem({ note, contactId }: { note: NoteWithAuthor; contactId: string
             variant="ghost"
             size="icon-sm"
             disabled={isPending}
-            onClick={() => startTransition(() => deleteNote(note.id, contactId))}
+            onClick={() => startTransition(() => deleteNote(note.id, entity))}
             title="Delete"
           >
             <Trash2 className="size-3.5" />

@@ -42,4 +42,5 @@ export async function addTask(input: { title: string; dueAt: string | null; cont
 
   revalidatePath("/tasks");
   if (input.contactId) revalidatePath(`/contacts/${input.contactId}`);
+  if (input.dealId) revalidatePath(`/pipeline/${input.dealId}`);
 }

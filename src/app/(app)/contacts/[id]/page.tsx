@@ -86,7 +86,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
               <UnifiedTimeline events={timelineEvents} />
             </RailSection>
             <RailSection title="Notes">
-              <NotesPanel contactId={contact.id} notes={(notes ?? []) as NoteWithAuthor[]} members={members ?? []} />
+              <NotesPanel entity={{ contactId: contact.id }} notes={(notes ?? []) as NoteWithAuthor[]} members={members ?? []} />
             </RailSection>
           </>
         }
@@ -124,7 +124,11 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
             </RailSection>
 
             <RailSection title={`Files (${files?.length ?? 0})`}>
-              <FilesPanel contactId={contact.id} organizationId={contact.organization_id} files={(files ?? []) as FileWithUploader[]} />
+              <FilesPanel
+                entity={{ contactId: contact.id }}
+                organizationId={contact.organization_id}
+                files={(files ?? []) as FileWithUploader[]}
+              />
             </RailSection>
 
             <RailSection title={`Sequences (${enrollments?.length ?? 0})`}>
