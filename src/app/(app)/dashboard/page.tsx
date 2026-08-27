@@ -21,6 +21,7 @@ export default async function DashboardPage() {
     { data: openDeals },
     { count: tasksDueToday },
     { data: pipeline },
+    { count: pipelineCount },
   ] = await Promise.all([
     supabase.from("contacts").select("*", { count: "exact", head: true }),
     supabase.from("companies").select("*", { count: "exact", head: true }),
@@ -33,12 +34,13 @@ export default async function DashboardPage() {
       .lte("due_at", endOfDay.toISOString()),
     supabase
       .from("pipelines")
-      .select("id, stages(id, name, position)")
+      .select("id, name, stages(id, name, position)")
       .eq("organization_id", appUser.organization_id!)
       .order("is_default", { ascending: false })
       .order("position")
       .limit(1)
       .single(),
+    supabase.from("pipelines").select("*", { count: "exact", head: true }).eq("organization_id", appUser.organization_id!),
   ]);
 
   const openDealsTotal = (openDeals ?? []).reduce((sum, d) => sum + d.value, 0);
@@ -69,14 +71,19 @@ export default async function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Open pipeline value by stage</CardTitle>
+          <CardTitle>Open pipeline value by stage{pipeline ? ` — ${pipeline.name}` : ""}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-2">
           {chartData.length > 0 ? (
             <DealsByStageChart data={chartData} />
           ) : (
             <p className="text-sm text-muted-foreground">No pipeline data yet.</p>
           )}
+          {(pipelineCount ?? 0) > 1 ? (
+            <p className="text-xs text-muted-foreground">
+              Showing {pipeline?.name} only — open deals in other pipelines aren&apos;t included in this breakdown.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
     </div>
