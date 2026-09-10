@@ -18,11 +18,40 @@ export type TaskStatus = "open" | "completed" | "cancelled";
 export type TaskPriority = "low" | "normal" | "high";
 export type TaskType = "task" | "call" | "email" | "follow_up";
 export type RecurrenceUnit = "day" | "week" | "month";
-export type UserRole = "owner" | "admin" | "member";
+export type UserRole = "owner" | "admin" | "rep" | "read-only";
+export type MemberStatus = "active" | "deactivated";
+
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+  owner: "Owner",
+  admin: "Admin",
+  rep: "Rep",
+  "read-only": "Read-only",
+};
 export type NotificationType = "task_assigned" | "mention" | "reply" | "other";
 export type LifecycleStage = "subscriber" | "lead" | "mql" | "sql" | "opportunity" | "customer" | "evangelist" | "other";
 export type ConsentStatus = "unknown" | "granted" | "revoked";
 export type CallOutcome = "connected" | "voicemail" | "no_answer" | "busy";
+export const WEBHOOK_EVENT_TYPES = [
+  "deal.stage_changed",
+  "deal.won",
+  "deal.lost",
+  "contact.created",
+  "contact.updated",
+  "task.completed",
+] as const;
+export type WebhookEventType = (typeof WEBHOOK_EVENT_TYPES)[number];
+
+export type CustomFieldEntityType = "contact" | "company" | "deal";
+export type CustomFieldType = "text" | "number" | "date" | "boolean" | "select" | "multiselect";
+
+export const CUSTOM_FIELD_TYPE_LABELS: Record<CustomFieldType, string> = {
+  text: "Text",
+  number: "Number",
+  date: "Date",
+  boolean: "Checkbox",
+  select: "Select",
+  multiselect: "Multi-select",
+};
 
 export type Contact = Tables<"contacts">;
 export type Company = Tables<"companies">;

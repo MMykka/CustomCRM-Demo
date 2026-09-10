@@ -44,3 +44,48 @@ export async function renameOrganization(_prevState: { error: string | null }, f
   revalidatePath("/", "layout");
   return { error: null };
 }
+
+export type BusinessHours = Record<string, { start: string; end: string } | null>;
+
+export async function updateOrgProfile(
+  _prevState: { error: string | null },
+  formData: FormData,
+): Promise<{ error: string | null }> {
+  const timezone = String(formData.get("timezone") ?? "UTC");
+  const businessHoursRaw = String(formData.get("businessHours") ?? "null");
+  const quietHoursRaw = String(formData.get("quietHours") ?? "null");
+
+  const appUser = await requireAppUser();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      timezone,
+      business_hours: JSON.parse(businessHoursRaw),
+      quiet_hours: JSON.parse(quietHoursRaw),
+    })
+    .eq("id", appUser.organization_id!);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return { error: null };
+}
+
+export async function updateOrgLogo(input: { storagePath: string }) {
+  const appUser = await requireAppUser();
+  const supabase = await createClient();
+
+  const { data } = supabase.storage.from("org-logos").getPublicUrl(input.storagePath);
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({ logo_url: data.publicUrl })
+    .eq("id", appUser.organization_id!);
+
+  if (error) throw error;
+
+  revalidatePath("/settings");
+  revalidatePath("/", "layout");
+}
