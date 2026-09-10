@@ -24,17 +24,15 @@ export default function AcceptInvitePage() {
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    const supabase = createClient();
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const accessToken = hashParams.get("access_token");
     const refreshToken = hashParams.get("refresh_token");
 
-    if (!accessToken || !refreshToken) {
-      setStatus("invalid");
-      return;
-    }
+    const establishSession = accessToken && refreshToken
+      ? createClient().auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      : Promise.resolve({ error: new Error("missing session tokens") });
 
-    supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).then(({ error }) => {
+    establishSession.then(({ error }) => {
       setStatus(error ? "invalid" : "ready");
     });
   }, []);
