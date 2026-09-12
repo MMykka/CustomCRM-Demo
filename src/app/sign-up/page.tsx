@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthLayout } from "@/components/auth/auth-layout";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
+import { PASSWORD_MIN_LENGTH } from "@/lib/password";
 
 export default function SignUpPage() {
   const [state, formAction, pending] = useActionState(signUp, { error: null });
@@ -24,8 +26,12 @@ export default function SignUpPage() {
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={6} />
+          <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={PASSWORD_MIN_LENGTH} />
+          <p className="text-xs text-muted-foreground">
+            At least {PASSWORD_MIN_LENGTH} characters, with an uppercase letter, a lowercase letter, and a number.
+          </p>
         </div>
+        <TurnstileWidget />
         {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
         <Button type="submit" disabled={pending} className="w-full">
           {pending ? "Creating account..." : "Continue"}

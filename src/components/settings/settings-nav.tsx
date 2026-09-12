@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const SETTINGS_NAV_ITEMS = [
   { href: "/settings", label: "Organization" },
   { href: "/settings/members", label: "Team members" },
+  { href: "/settings/security", label: "Security" },
   { href: "/settings/custom-fields", label: "Custom fields" },
   { href: "/settings/tags", label: "Tags" },
   { href: "/settings/templates", label: "Message templates" },

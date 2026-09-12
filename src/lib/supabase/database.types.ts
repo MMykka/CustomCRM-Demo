@@ -761,6 +761,24 @@ export type Database = {
           },
         ]
       }
+      login_attempts: {
+        Row: {
+          created_at: string
+          email: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: never
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: never
+        }
+        Relationships: []
+      }
       message_templates: {
         Row: {
           body: string
@@ -1778,6 +1796,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_recent_login_failures: {
+        Args: { p_email: string }
+        Returns: number
+      }
       create_organization: { Args: { org_name: string }; Returns: string }
       current_org_id: { Args: never; Returns: string }
       find_contact_duplicates: {
@@ -1792,6 +1814,8 @@ export type Database = {
         Args: { loser_id: string; winner_id: string }
         Returns: undefined
       }
+      record_login_failure: { Args: { p_email: string }; Returns: undefined }
+      reset_login_failures: { Args: { p_email: string }; Returns: undefined }
       set_member_role: {
         Args: { new_role: string; target_user_id: string }
         Returns: undefined

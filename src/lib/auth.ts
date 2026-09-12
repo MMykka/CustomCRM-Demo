@@ -16,6 +16,16 @@ export async function requireAppUser() {
     redirect("/login");
   }
 
+  // Password auth alone only reaches aal1. If this account has a verified
+  // TOTP factor enrolled, every protected route stays gated here until the
+  // second factor is verified (see /mfa-challenge and signIn() in
+  // src/lib/actions/auth.ts) -- this is the actual enforcement point, since
+  // it runs on every server-rendered request, not just at login time.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal && aal.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel) {
+    redirect("/mfa-challenge");
+  }
+
   const { data: appUser, error } = await supabase.from("users").select("*").eq("id", user.id).single();
 
   if (error || !appUser) {

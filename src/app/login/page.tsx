@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthLayout } from "@/components/auth/auth-layout";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(signIn, { error: null });
@@ -22,6 +23,7 @@ export default function LoginPage() {
           <Label htmlFor="password">Password</Label>
           <Input id="password" name="password" type="password" autoComplete="current-password" required />
         </div>
+        <TurnstileWidget />
         {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
         <Button type="submit" disabled={pending} className="w-full">
           {pending ? "Signing in..." : "Continue"}

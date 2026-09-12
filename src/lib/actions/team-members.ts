@@ -40,7 +40,8 @@ export async function inviteTeamMember(email: string, role: UserRole): Promise<{
 }
 
 export async function changeTeamMemberRole(memberUserId: string, role: UserRole) {
-  await requireAppUser();
+  const appUser = await requireAppUser();
+  requireOrgRole(appUser, ["owner", "admin"]);
   const supabase = await createClient();
 
   const { error } = await supabase.rpc("set_member_role", { target_user_id: memberUserId, new_role: role });
@@ -50,7 +51,8 @@ export async function changeTeamMemberRole(memberUserId: string, role: UserRole)
 }
 
 export async function deactivateTeamMember(memberUserId: string) {
-  await requireAppUser();
+  const appUser = await requireAppUser();
+  requireOrgRole(appUser, ["owner", "admin"]);
   const supabase = await createClient();
 
   const { error } = await supabase.rpc("set_member_status", { target_user_id: memberUserId, new_status: "deactivated" });
@@ -60,7 +62,8 @@ export async function deactivateTeamMember(memberUserId: string) {
 }
 
 export async function reactivateTeamMember(memberUserId: string) {
-  await requireAppUser();
+  const appUser = await requireAppUser();
+  requireOrgRole(appUser, ["owner", "admin"]);
   const supabase = await createClient();
 
   const { error } = await supabase.rpc("set_member_status", { target_user_id: memberUserId, new_status: "active" });
