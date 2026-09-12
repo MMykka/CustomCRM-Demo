@@ -147,7 +147,7 @@ export function TwoFactorSettings() {
             <div className="flex flex-col items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element -- next/image can't optimize a dynamic data: URI */}
               <img
-                src={`data:image/svg+xml;utf-8,${encodeURIComponent(enrolling.qrCode)}`}
+                src={enrolling.qrCode}
                 alt="Scan with your authenticator app"
                 className="size-40 rounded-md border bg-white p-2"
               />
