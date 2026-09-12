@@ -1796,6 +1796,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_existing_user_to_org: {
+        Args: { p_email: string; p_role: string }
+        Returns: undefined
+      }
       count_recent_login_failures: {
         Args: { p_email: string }
         Returns: number

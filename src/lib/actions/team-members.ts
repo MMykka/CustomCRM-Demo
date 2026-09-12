@@ -21,7 +21,7 @@ export async function listTeamMembers() {
   return data ?? [];
 }
 
-export async function inviteTeamMember(email: string, role: UserRole): Promise<{ error: string | null }> {
+export async function inviteTeamMember(email: string, role: UserRole): Promise<{ error: string | null; addedExisting?: boolean }> {
   const appUser = await requireAppUser();
   requireOrgRole(appUser, ["owner", "admin"]);
 
@@ -33,7 +33,20 @@ export async function inviteTeamMember(email: string, role: UserRole): Promise<{
     redirectTo: `${origin}/accept-invite`,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    // inviteUserByEmail only creates brand-new accounts -- this email
+    // already has one, so fall back to adding it directly to this org
+    // instead of sending an invite email (see the migration for why).
+    if (error.code === "email_exists") {
+      const supabase = await createClient();
+      const { error: addError } = await supabase.rpc("add_existing_user_to_org", { p_email: email, p_role: role });
+      if (addError) return { error: addError.message };
+
+      revalidatePath("/settings/members");
+      return { error: null, addedExisting: true };
+    }
+    return { error: error.message };
+  }
 
   revalidatePath("/settings/members");
   return { error: null };

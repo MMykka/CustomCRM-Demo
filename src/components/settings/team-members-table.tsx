@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ function InviteMemberDialog() {
       setRole("rep");
       setError(null);
       setOpen(false);
+      toast.success(result.addedExisting ? "Added -- they already had an account, so no invite email was sent." : "Invite sent");
     });
   }
 
