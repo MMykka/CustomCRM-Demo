@@ -44,15 +44,20 @@ export function NewDealDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     const value = Number(formData.get("value") ?? 0);
 
     startTransition(async () => {
-      const id = await addDeal({ title, value, contactId: contactId || null, pipelineId: pipelineId || null });
-      if (!id) {
-        toast.error("Enter a deal title");
-        return;
+      try {
+        const id = await addDeal({ title, value, contactId: contactId || null, pipelineId: pipelineId || null });
+        if (!id) {
+          toast.error("Enter a deal title");
+          return;
+        }
+        formRef.current?.reset();
+        handleOpenChange(false);
+        toast.success("Deal created");
+        router.push(pipelineId ? `/pipeline?pipeline=${pipelineId}` : "/pipeline");
+        router.refresh();
+      } catch {
+        toast.error("Couldn't create deal. Try again.");
       }
-      formRef.current?.reset();
-      handleOpenChange(false);
-      router.push(pipelineId ? `/pipeline?pipeline=${pipelineId}` : "/pipeline");
-      router.refresh();
     });
   }
 

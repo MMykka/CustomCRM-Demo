@@ -48,18 +48,23 @@ export function NewTaskDialog({
     }
 
     startTransition(async () => {
-      await addTask({
-        title,
-        dueAt: dueAt || null,
-        type,
-        recurrenceInterval: repeatEnabled ? recurrenceInterval : null,
-        recurrenceUnit: repeatEnabled ? unit : null,
-      });
-      formRef.current?.reset();
-      reset();
-      onOpenChange(false);
-      if (!defaultDueAt) router.push("/tasks");
-      router.refresh();
+      try {
+        await addTask({
+          title,
+          dueAt: dueAt || null,
+          type,
+          recurrenceInterval: repeatEnabled ? recurrenceInterval : null,
+          recurrenceUnit: repeatEnabled ? unit : null,
+        });
+        formRef.current?.reset();
+        reset();
+        onOpenChange(false);
+        toast.success("Task created");
+        if (!defaultDueAt) router.push("/tasks");
+        router.refresh();
+      } catch {
+        toast.error("Couldn't create task. Try again.");
+      }
     });
   }
 

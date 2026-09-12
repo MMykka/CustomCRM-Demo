@@ -32,12 +32,12 @@ export function AppShell({
 
   return (
     <QuickActionsProvider>
-      <div className="flex min-h-screen">
-        <div className="hidden w-60 shrink-0 border-r md:block">
+      <div className="flex h-screen overflow-hidden">
+        <div className="hidden w-60 shrink-0 overflow-y-hidden border-r md:block">
           <AppSidebar {...sidebarProps} />
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <div className="flex items-center gap-2 border-b p-2 md:hidden">
             <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
               <Menu className="size-5" />

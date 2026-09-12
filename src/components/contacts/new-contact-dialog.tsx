@@ -21,15 +21,20 @@ export function NewContactDialog({ open, onOpenChange }: { open: boolean; onOpen
     const phone = String(formData.get("phone") ?? "");
 
     startTransition(async () => {
-      const id = await addContact({ firstName, lastName, email, phone });
-      if (!id) {
-        toast.error("Enter at least a name or email");
-        return;
+      try {
+        const id = await addContact({ firstName, lastName, email, phone });
+        if (!id) {
+          toast.error("Enter at least a name or email");
+          return;
+        }
+        formRef.current?.reset();
+        onOpenChange(false);
+        toast.success("Contact created");
+        router.push(`/contacts/${id}`);
+        router.refresh();
+      } catch {
+        toast.error("Couldn't create contact. Try again.");
       }
-      formRef.current?.reset();
-      onOpenChange(false);
-      router.push(`/contacts/${id}`);
-      router.refresh();
     });
   }
 

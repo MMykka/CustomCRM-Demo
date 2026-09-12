@@ -11,7 +11,19 @@ import type { DealWithRelations } from "./kanban-board";
 
 export type DealMeta = { daysInStage: number; nextTask: { title: string; due_at: string | null } | null };
 
-export function DealCard({ deal, meta, isOverlay = false }: { deal: DealWithRelations; meta?: DealMeta; isOverlay?: boolean }) {
+export function DealCard({
+  deal,
+  meta,
+  isOverlay = false,
+  focused = false,
+  onFocusCard,
+}: {
+  deal: DealWithRelations;
+  meta?: DealMeta;
+  isOverlay?: boolean;
+  focused?: boolean;
+  onFocusCard?: () => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: deal.id,
     data: { deal },
@@ -26,9 +38,10 @@ export function DealCard({ deal, meta, isOverlay = false }: { deal: DealWithRela
       ref={isOverlay ? undefined : setNodeRef}
       {...(isOverlay ? {} : listeners)}
       {...(isOverlay ? {} : attributes)}
+      onMouseDown={isOverlay ? undefined : onFocusCard}
       className={`touch-none gap-1.5 py-3 ${stale ? "border-l-2 border-l-brand-yellow-foreground" : ""} ${
-        isOverlay ? "w-64 cursor-grabbing shadow-lg" : `cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40" : ""}`
-      }`}
+        focused ? "ring-2 ring-ring" : ""
+      } ${isOverlay ? "w-64 cursor-grabbing shadow-lg" : `cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40" : ""}`}`}
     >
       <CardContent className="flex flex-col gap-1.5 px-3">
         {isOverlay ? (

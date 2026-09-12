@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useTransition } from "react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { addTask } from "@/lib/actions/tasks";
@@ -15,9 +16,13 @@ export function QuickAddTask() {
       action={(formData) => {
         const title = String(formData.get("title") ?? "");
         const dueAt = String(formData.get("dueAt") ?? "");
+        formRef.current?.reset();
         startTransition(async () => {
-          await addTask({ title, dueAt: dueAt || null });
-          formRef.current?.reset();
+          try {
+            await addTask({ title, dueAt: dueAt || null });
+          } catch {
+            toast.error("Couldn't add task. Try again.");
+          }
         });
       }}
       className="flex gap-2"

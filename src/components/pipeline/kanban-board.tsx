@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -43,10 +44,12 @@ export function KanbanBoard({
   const [collapsedColumns, setCollapsedColumns] = useState<Record<string, boolean>>({});
   const [wonLostPrompt, setWonLostPrompt] = useState<{ dealId: string; mode: "won" | "lost"; stageId: string } | null>(null);
   const [syncedMounted, setSyncedMounted] = useState(false);
+  const [focusedDealId, setFocusedDealId] = useState<string | null>(null);
   const dealsRef = useRef(deals);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const instanceId = useId();
   const hasMounted = useHasMounted();
+  const router = useRouter();
 
   // useState(initialDeals) only seeds state on first mount; a same-route
   // router.refresh() (e.g. after creating a deal elsewhere) re-renders this
@@ -118,6 +121,80 @@ export function KanbanBoard({
     };
   }, [pipelineId, instanceId]);
 
+  // Arrow-key navigation between deal cards, Enter to open the focused deal,
+  // Escape to clear focus. Ignored while typing in a field or while a dialog
+  // (e.g. Won/Lost) is open so it doesn't fight with normal text input.
+  useEffect(() => {
+    function visibleStages() {
+      return stages.filter((s) => !collapsedColumns[s.id]);
+    }
+    function dealsInStage(stageId: string) {
+      return deals.filter((d) => d.stage_id === stageId);
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      if (wonLostPrompt || target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      if (!["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Enter", "Escape"].includes(event.key)) return;
+
+      if (event.key === "Escape") {
+        setFocusedDealId(null);
+        return;
+      }
+
+      if (event.key === "Enter") {
+        if (focusedDealId) {
+          event.preventDefault();
+          router.push(`/pipeline/${focusedDealId}`);
+        }
+        return;
+      }
+
+      const visible = visibleStages();
+      if (visible.length === 0) return;
+
+      const currentDeal = focusedDealId ? deals.find((d) => d.id === focusedDealId) : undefined;
+      const currentStageIndex = currentDeal ? visible.findIndex((s) => s.id === currentDeal.stage_id) : -1;
+
+      if (currentStageIndex === -1) {
+        // Nothing focused yet -- jump into the first deal of the first non-empty column.
+        const firstStageWithDeals = visible.find((s) => dealsInStage(s.id).length > 0);
+        if (firstStageWithDeals) {
+          event.preventDefault();
+          setFocusedDealId(dealsInStage(firstStageWithDeals.id)[0].id);
+        }
+        return;
+      }
+
+      const columnDeals = dealsInStage(currentDeal!.stage_id);
+      const indexInColumn = columnDeals.findIndex((d) => d.id === currentDeal!.id);
+
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        const nextIndex = event.key === "ArrowDown" ? indexInColumn + 1 : indexInColumn - 1;
+        if (nextIndex >= 0 && nextIndex < columnDeals.length) {
+          setFocusedDealId(columnDeals[nextIndex].id);
+        }
+        return;
+      }
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        const step = event.key === "ArrowRight" ? 1 : -1;
+        for (let i = currentStageIndex + step; i >= 0 && i < visible.length; i += step) {
+          const candidateDeals = dealsInStage(visible[i].id);
+          if (candidateDeals.length > 0) {
+            setFocusedDealId(candidateDeals[Math.min(indexInColumn, candidateDeals.length - 1)].id);
+            return;
+          }
+        }
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [stages, deals, collapsedColumns, focusedDealId, wonLostPrompt, router]);
+
   function toggleColumnCollapse(stageId: string) {
     const next = { ...collapsedColumns, [stageId]: !collapsedColumns[stageId] };
     setCollapsedColumns(next);
@@ -173,6 +250,8 @@ export function KanbanBoard({
             dealMeta={dealMeta}
             collapsed={collapsedColumns[stage.id] ?? false}
             onToggleCollapse={() => toggleColumnCollapse(stage.id)}
+            focusedDealId={focusedDealId}
+            onFocusDeal={setFocusedDealId}
           />
         ))}
       </div>

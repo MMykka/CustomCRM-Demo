@@ -14,12 +14,16 @@ export function KanbanColumn({
   dealMeta,
   collapsed,
   onToggleCollapse,
+  focusedDealId,
+  onFocusDeal,
 }: {
   stage: Stage;
   deals: DealWithRelations[];
   dealMeta: Record<string, DealMeta>;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  focusedDealId?: string | null;
+  onFocusDeal?: (dealId: string) => void;
 }) {
   // The droppable ref always stays on a rendered, mounted node -- even
   // collapsed -- so a deal can still be dropped into a collapsed column
@@ -66,7 +70,13 @@ export function KanbanColumn({
       <ScrollArea className="flex-1">
         <div ref={setNodeRef} className={`flex min-h-24 flex-col gap-2 p-2 transition-colors ${isOver ? "bg-accent/50" : ""}`}>
           {deals.map((deal) => (
-            <DealCard key={deal.id} deal={deal} meta={dealMeta[deal.id]} />
+            <DealCard
+              key={deal.id}
+              deal={deal}
+              meta={dealMeta[deal.id]}
+              focused={deal.id === focusedDealId}
+              onFocusCard={() => onFocusDeal?.(deal.id)}
+            />
           ))}
         </div>
       </ScrollArea>
