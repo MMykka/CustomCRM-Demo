@@ -53,6 +53,19 @@ export function TwoFactorSettings() {
 
   async function startEnroll() {
     const supabase = createClient();
+
+    // A previous enrollment attempt that was abandoned without cancelling
+    // (closing the tab, a crash, etc.) can leave an *unverified* factor
+    // behind. GoTrue rejects a new enroll() with a duplicate friendly name
+    // (we don't set one, so they're all "") while that's still there, so
+    // clear out any stale unverified factors before trying again. Only
+    // `all` includes unverified factors -- `totp` is verified-only.
+    const { data: existing } = await supabase.auth.mfa.listFactors();
+    const stale = existing?.all.filter((f) => f.factor_type === "totp" && f.status === "unverified") ?? [];
+    for (const factor of stale) {
+      await supabase.auth.mfa.unenroll({ factorId: factor.id });
+    }
+
     const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
     if (error || !data) {
       toast.error(error?.message ?? "Couldn't start enrollment. Try again.");
