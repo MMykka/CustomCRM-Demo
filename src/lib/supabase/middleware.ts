@@ -2,7 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
 
-const PUBLIC_PATHS = ["/login", "/sign-up", "/auth", "/accept-invite"];
+// /api/public is excluded here because it authenticates external callers
+// with its own API-key check (see src/lib/publicApi.ts), not a Supabase
+// session cookie -- it would otherwise get redirected to /login.
+const PUBLIC_PATHS = ["/login", "/sign-up", "/auth", "/accept-invite", "/api/public"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

@@ -1,3 +1,39 @@
+# Custom CRM - the Hub
+
+A multi-tenant CRM (Next.js + Supabase) — contacts, companies, deals/pipelines,
+tasks, activities, and org-scoped tags/custom fields, with an outbound n8n
+integration for deal-stage/won/lost notifications.
+
+## External lead sync
+
+`POST /api/public/leads` is a small authenticated public API endpoint that
+lets an external app push a lead in as a contact and keep it tagged as that
+lead moves through a nurture flow. It's currently used by the sibling
+**AI-Powered Lead Nurture Workflow** project (`../AI-Powered Lead Nurture
+Workflow`), which forwards every real (non-simulated) lead here — see that
+project's README and [`src/lib/hubService.ts`](../AI-Powered%20Lead%20Nurture%20Workflow/src/lib/hubService.ts)
+for the calling side.
+
+- **Auth**: `Authorization: Bearer hub_live_...`, an API key created from
+  **Settings → API Keys** in the Hub UI (`src/lib/actions/api-keys.ts`).
+  The route hashes the incoming key and compares it against the stored
+  `key_hash` (see [`src/lib/publicApi.ts`](src/lib/publicApi.ts)) — never a
+  Supabase session, so it's excluded from the session-cookie redirect in
+  [`src/lib/supabase/middleware.ts`](src/lib/supabase/middleware.ts).
+- **What it does**: find-or-creates a `contacts` row by email, tags it
+  (`Nurture: Day 0/2/5 Sent`, `Nurture: Booked/Converted`,
+  `Nurture: Escalated`), logs an `activities` entry so the tag change shows
+  up on the contact's timeline, and — on a `converted` event — moves
+  `lifecycle_stage` to `customer`. See
+  [`src/app/api/public/leads/route.ts`](src/app/api/public/leads/route.ts).
+- All writes use the service-role client (`createAdminClient()`), since an
+  external caller has no Supabase session for RLS to key off of.
+
+This is a boilerplate project otherwise — see below for the standard
+Next.js `create-next-app` getting-started info.
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

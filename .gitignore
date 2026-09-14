@@ -40,6 +40,9 @@ yarn-error.log*
 # claude code local state
 .claude/
 
+# local Supabase Studio SQL editor scratch snippets
+supabase/snippets/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
