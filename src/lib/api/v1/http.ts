@@ -68,7 +68,10 @@ async function authenticate(req: NextRequest): Promise<{ ctx: ApiContext; rateHe
     p_key_hash: keyHash,
     p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
   });
-  if (error) throw new ApiError(500, "internal_error", "Could not verify API key");
+  if (error) {
+    console.error("api_authenticate RPC failed", error);
+    throw new ApiError(500, "internal_error", "Could not verify API key");
+  }
 
   const row = data?.[0];
   if (!row) throw new ApiError(401, "unauthorized", "Invalid or revoked API key");
