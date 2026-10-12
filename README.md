@@ -4,6 +4,49 @@ A multi-tenant CRM (Next.js + Supabase) — contacts, companies, deals/pipelines
 tasks, activities, and org-scoped tags/custom fields, with an outbound n8n
 integration for deal-stage/won/lost notifications.
 
+## Public API (v1)
+
+A general-purpose, API-key-authenticated REST API for contacts, so any
+website, form builder, automation tool (Zapier, Make, n8n) or custom app can
+create, update, find and tag contacts in the Hub.
+
+**Base URL:** `https://custom-crm-hub.vercel.app/api/v1` — full reference:
+**[docs/API.md](docs/API.md)**.
+
+```bash
+curl -X POST https://custom-crm-hub.vercel.app/api/v1/contacts/upsert \
+  -H "Authorization: Bearer hub_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Ada Lovelace", "email": "ada@example.com", "tags": ["Newsletter"]}'
+```
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/contacts/upsert` | Create or update one contact (matched by id → external_id → email → phone), or up to 100 in a batch |
+| GET | `/contacts` | List, search and filter contacts (cursor pagination, `updated_since` for syncs) |
+| POST | `/contacts` | Create a contact; 409 if the email or external_id exists |
+| GET · PATCH · PUT · DELETE | `/contacts/{id}` | Read, update the fields sent, or delete one contact |
+| POST · DELETE | `/contacts/{id}/tags` | Add or remove tags |
+| GET · POST | `/contacts/{id}/activities` | Read or add timeline entries |
+| GET | `/contacts/fields`, `/tags`, `/me` | Field/tag discovery and a connection test |
+
+- **Auth**: an API key from **Settings → API Keys**, sent as
+  `Authorization: Bearer ...`, `X-API-Key: ...` or `?api_key=...`.
+- **Any client**: accepts JSON, urlencoded and multipart bodies with
+  flexible field names (`firstName`, `first_name`, `First Name`, `fname`
+  all work), so a plain HTML `<form>` can post straight to it (with a
+  post-submit redirect and a honeypot spam trap).
+- **Limits**: 600 requests/minute per key (`X-RateLimit-*` headers, `429`
+  over the limit); batch upsert takes 100 contacts per request.
+- **Webhooks**: endpoints configured in Settings receive HMAC-signed
+  `contact.created` / `contact.updated` / `contact.deleted` events.
+- **Code**: routes in [`src/app/api/v1/`](src/app/api/v1/), shared logic in
+  [`src/lib/api/v1/`](src/lib/api/v1/) (auth, rate limiting and parsing in
+  `http.ts`; contact reads/writes in `contacts.ts`), webhook delivery in
+  [`src/lib/webhooks.ts`](src/lib/webhooks.ts). Keys are checked and
+  rate-limited in one `api_authenticate()` database call
+  ([migration](supabase/migrations/20261012000001_public_api_v1.sql)).
+
 ## External lead sync
 
 `POST /api/public/leads` is a small authenticated public API endpoint that
