@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppUser } from "@/lib/auth";
 import { contactDisplayName, type LifecycleStage } from "@/lib/types";
 import { findCompanyIdForEmail } from "@/lib/companies";
+import { emitContactEvents } from "@/lib/api/v1/contacts";
 
 export async function listContactsForPicker() {
   await requireAppUser();
@@ -45,6 +47,7 @@ export async function addContact(input: { firstName: string; lastName: string; e
 
   if (error) throw error;
 
+  after(() => emitContactEvents(appUser.organization_id!, [{ event: "contact.created", contactId: data.id }]));
   revalidatePath("/contacts");
   return data.id as string;
 }
@@ -92,6 +95,7 @@ export async function updateContact(
 
   if (error) throw error;
 
+  after(() => emitContactEvents(appUser.organization_id!, [{ event: "contact.updated", contactId }]));
   revalidatePath(`/contacts/${contactId}`);
   revalidatePath("/contacts");
 }

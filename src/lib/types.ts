@@ -37,6 +37,7 @@ export const WEBHOOK_EVENT_TYPES = [
   "deal.lost",
   "contact.created",
   "contact.updated",
+  "contact.deleted",
   "task.completed",
 ] as const;
 export type WebhookEventType = (typeof WEBHOOK_EVENT_TYPES)[number];

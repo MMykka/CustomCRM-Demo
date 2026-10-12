@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -156,6 +161,32 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_rate_limits: {
+        Row: {
+          api_key_id: string
+          request_count: number
+          window_start: string
+        }
+        Insert: {
+          api_key_id: string
+          request_count?: number
+          window_start: string
+        }
+        Update: {
+          api_key_id?: string
+          request_count?: number
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_rate_limits_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
             referencedColumns: ["id"]
           },
         ]
@@ -312,6 +343,7 @@ export type Database = {
           created_at: string
           email: string | null
           email_opt_out: boolean
+          external_id: string | null
           first_name: string | null
           id: string
           job_title: string | null
@@ -335,6 +367,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           email_opt_out?: boolean
+          external_id?: string | null
           first_name?: string | null
           id?: string
           job_title?: string | null
@@ -358,6 +391,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           email_opt_out?: boolean
+          external_id?: string | null
           first_name?: string | null
           id?: string
           job_title?: string | null
@@ -1053,6 +1087,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nurture_leads: {
+        Row: {
+          data: Json
+          id: string
+          submitted_at: string
+        }
+        Insert: {
+          data: Json
+          id: string
+          submitted_at: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          submitted_at?: string
+        }
+        Relationships: []
       }
       organization_members: {
         Row: {
@@ -1800,6 +1852,16 @@ export type Database = {
         Args: { p_email: string; p_role: string }
         Returns: undefined
       }
+      api_authenticate: {
+        Args: { p_key_hash: string; p_window_seconds: number }
+        Returns: {
+          api_key_id: string
+          key_name: string
+          organization_id: string
+          request_count: number
+          window_reset_at: string
+        }[]
+      }
       count_recent_login_failures: {
         Args: { p_email: string }
         Returns: number
@@ -1969,4 +2031,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
