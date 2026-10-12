@@ -87,6 +87,15 @@ function EndpointDialog({ endpoint, trigger }: { endpoint?: WebhookEndpoint; tri
             <Label>Events</Label>
             <EventPicker selected={events} onChange={setEvents} />
           </div>
+          {endpoint ? (
+            <div className="flex flex-col gap-1.5">
+              <Label>Signing secret</Label>
+              <Input readOnly value={endpoint.secret} className="font-mono text-xs" onFocus={(e) => e.target.select()} />
+              <p className="text-xs text-muted-foreground">
+                Verify deliveries: X-Hub-Signature is sha256= + the HMAC-SHA256 of &quot;{"{X-Hub-Timestamp}.{body}"}&quot; keyed by this secret.
+              </p>
+            </div>
+          ) : null}
         </div>
         <DialogFooter>
           <Button size="sm" disabled={isPending || !url.trim() || events.length === 0} onClick={handleSave}>
